@@ -1,0 +1,69 @@
+首先打开http://localhost:5173/网址，路径是path: '/'，挂载并开始渲染<Root/>组件，
+在试图渲染<Root/>组件的过程中，执行useLoginRedirect()函数：
+   1. 首次执行useLoginRedirect()函数，useLoginRedirect函数中的user这个state的值是'UNKNOWN'（在userSlice中定义的initialState.user='UNKNOWN'），
+      即满足user == 'UNKNOWN'，
+            则执行testLoggedIn()函数；
+                在testLoggedIn()函数中，调用getMe()这个endpoint，
+                    在getMe()的url中，需要getTherapistIDFromCookie()，
+                        但是因为首次登录，所以cookie中没有therapistID，所以getTherapistIDFromCookie()返回的是undefined，
+                    所以getMe()的url中的therapistID是undefined，所以后端返回的是404错误；
+            则在testLoggedIn()函数中，执行了dispatch(logout())，即将user的值设置为'NOT_LOGGED_IN'，
+      则useLoginRedirect函数中的useEffect()中的依赖项user的值变为'NOT_LOGGED_IN'，则useEffect()重新运行，又因为此时的path是'/'，即满足
+      (user == 'NOT_LOGGED_IN' && location.pathname != '/login')，执行navigate('/login')，跳转到登录页面。
+此时，网站在登录页面，路径是path: '/login'，并开始渲染<Login/>组件（它和<Root/>同时挂载），在<Login/>组件中再次执行useLoginRedirect()函数，
+   2. 第二次执行useLoginRedirect()函数，useLoginRedirect函数中的user这个state的值是'NOT_LOGGED_IN'，
+      即满足user == 'NOT_LOGGED_IN'，此时在登录页面等待用户输入用户名和密码，输入完成后点击登录按钮，
+            则执行onLogin()函数；
+                在onLogin()函数中，调用postAuthLogin这个endpoint的MutationTrigger函数loginMutation()，
+                并同时执行postAuthLogin这个函数的onQueryStarted操作，
+                    如果用户名和密码错误，则根据后端的代码，无法获得Token，并且TherapistID和Token也不会被返回前端并存入cookie，页面停留在登录页面
+                    如果用户名和密码正确，则根据后端的代码，会获得Token，并且TherapistID和Token会被返回前端存入cookie，并执行登录页面刷新操作，页面重新挂载：window.location.reload()
+此时，网站在登录页面，路径是path: '/login'，并开始再次挂载并渲染<Login/>组件，在<Login/>组件中再次执行useLoginRedirect()函数，
+   3. 第三次执行useLoginRedirect()函数，useLoginRedirect函数中的user这个state的值仍是'UNKNOWN'，因为页面刷新重载了，所以user的值又变成了'UNKNOWN'，
+      即满足user == 'UNKNOWN'，
+            则执行testLoggedIn()函数；
+                在testLoggedIn()函数中，调用getMe()这个endpoint，
+                    在getMe()的url中，需要getTherapistIDFromCookie()，
+                        此时cookie中已经有therapistID，所以getTherapistIDFromCookie()返回的是therapistID，
+                    所以getMe()的url中的therapistID是therapistID，所以后端返回的是200成功；
+            则在testLoggedIn()函数中，执行了dispatch(login())，即将user的值设置为LoggedInUser，
+      则useLoginRedirect函数中的useEffect()中的依赖项user的值变为LoggedInUser，则useEffect()重新运行，又因为此时的path是'/login'，即满足
+      (isLoggedIn(user) && !redirectDone && location.pathname == '/login')，执行navigate('/')，跳转到首页。
+
+
+
+综上所述，只要首次登录成功，就会在本地存入cookie，之后无论在哪个页面按刷新键，都会先执行useLoginRedirect()函数，然后由于刷新后redux store中的user的值被
+重置为'UNKNOWN'，所以一定会再执行testLoggedIn()函数，然后一定会再调用getMe()这个endpoint
+
+
+在你提供的这个React-Redux项目中，当你处于 `/patients` 路径下并按下刷新键（F5）之后，会发生以下一系列的挂载和渲染顺序，以及Redux store中状态变化的顺序：
+
+1. **页面刷新**：
+   按下F5后，浏览器会重新加载整个页面，这意味着当前的JavaScript环境会被销毁，包括Redux store中的所有状态。
+
+2. **JavaScript和React初始化**：
+   页面重新加载后，浏览器会重新执行JavaScript代码，包括React应用程序的初始化代码。
+
+3. **Redux Store初始化**：
+   在React应用程序初始化过程中，Redux store会被创建。这通常是通过调用`createStore`（或类似的函数，如`configureStore`）完成的。此时，store的状态会被初始化为其reducers定义的`initialState`。
+
+4. **React组件挂载**：
+   React会根据`router`配置开始渲染组件树。首先，`<Provider>`组件会被挂载，它通过`store` prop将Redux store提供给所有的子组件。然后，`<UrlPicker>`和`<RouterProvider>`组件会被挂载。
+
+5. **路由处理**：
+   `createBrowserRouter`创建的路由器开始处理当前URL（`/patients`）。它会根据路由配置来确定哪些组件需要被渲染。在这个例子中，`<Root>`组件会被渲染，它的子路由`<Patients>`也会被渲染。
+
+6. **组件渲染**：
+   `<Root>`组件和`<Patients>`组件会按照React的渲染逻辑进行渲染。如果这些组件连接到Redux store（例如，通过`connect`函数或`useSelector` Hook），它们会从store中获取状态并渲染相应的UI。
+
+7. **子组件渲染**：
+   如果`<Patients>`组件内部有子组件，它们也会根据需要进行渲染。由于你提到没有在`<Patients>`组件中使用`<Outlet/>`，所以不会渲染`<PatientDetail>`组件及其子组件，除非URL是`/patients/:patientId`。
+
+8. **React生命周期和Hooks执行**：
+   在组件挂载过程中，React生命周期方法（如`componentDidMount`）和Hooks（如`useEffect`）会被执行。这可能会导致进一步的状态更新，如果这些方法或Hooks与Redux store交互的话。
+
+总结来说，按下F5刷新键后，整个应用程序会重新加载，Redux store会被重置为初始状态，然后React会根据当前的URL重新挂载和渲染组件。这个过程中，所有的组件状态都会从头开始，就像你第一次访问应用程序一样。
+
+
+
+

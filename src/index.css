@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap');
+
+@font-face {
+    font-family: 'ITCEDSCR';
+    src: url('./common/fonts/ITCEDSCR.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    * {
+        font-family: 'Montserrat', sans-serif;
+        @apply text-text text-baseSmaller 2xl:text-base;
+    }
+
+    .card {
+        @apply bg-white rounded-xl shadow p-6
+    }
+
+    .card-outline {
+        @apply rounded px-6 py-4 border border-gray-300 flex flex-col
+    }
+
+    .btn-text {
+        @apply text-primary flex gap-2 py-1 items-center [&>svg]:h-max [&>svg]:w-5 hover:font-bold transition-all whitespace-nowrap
+    }
+
+    .btn-tertiary {
+        @apply bg-secondary text-primary flex gap-2 rounded-xl py-1 px-2 items-center [&>svg]:h-full [&>svg]:w-5 hover:brightness-105 [&>*>svg]:fill-primary [&>svg]:fill-primary whitespace-nowrap
+    }
+
+    .btn-secondary {
+        @apply bg-white text-primary flex gap-2 rounded-xl py-2 px-4 items-center [&>svg]:h-full [&>svg]:w-5 hover:brightness-125 border border-primary [&>svg]:fill-primary whitespace-nowrap
+    }
+
+    .btn-primary {
+        /*Has border to make it the same size as inputs*/
+        @apply bg-primary text-white flex gap-2 rounded-xl py-2 px-4
+        items-center [&>svg]:h-full [&>svg]:w-5 enabled:hover:brightness-125 [&>svg]:fill-white whitespace-nowrap border border-primary
+        disabled:bg-gray-300 disabled:border-gray-500 disabled:text-gray-500
+    }
+
+    .btn-icon {
+        @apply [&>svg]:fill-primary [&>svg]:h-6 [&>svg]:w-auto cursor-pointer hover:bg-tertiary p-1 rounded-full
+    }
+
+
+    input, textarea, select {
+        @apply border border-gray-300 rounded-xl py-2 px-4 max-w-[250px]
+    }
+
+    h1 {
+        @apply text-text-dark text-3xl
+    }
+
+    h2 {
+        @apply font-bold text-xl text-text-dark
+    }
+
+    h3 {
+        @apply font-bold text-lg text-text-dark
+    }
+
+    h4 {
+        @apply font-semibold text-gray-500
+    }
+
+    h5 {
+        @apply font-semibold text-text-dark
+    }
+
+    h6 {
+        @apply font-semibold text-sm
+    }
+
+    svg {
+        @apply fill-white
+    }
+
+    img, video {
+        @apply rounded-xl max-w-fit
+    }
+
+    img {
+        @apply object-cover
+    }
+    /*Yongzhi's code*/
+    .error-message {
+        @apply flex items-center bg-red-100 text-red-700 border border-red-400 px-4 py-3 rounded relative;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    /* 定义淡入动画 */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translate3d(0, -10%, 0);
+        }
+        to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+    }
+}

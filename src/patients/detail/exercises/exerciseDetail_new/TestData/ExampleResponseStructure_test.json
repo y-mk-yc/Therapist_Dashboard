@@ -1,0 +1,117 @@
+{
+    "SessionID": "1",
+    "ProtocolName": "aaa",
+    "ProtocolDescription": "aaa",
+    "TherapyFocus":{
+        "ROM": true,
+        "Strength": true,
+        "Endurance": true,
+        "ShoulderAA": true,
+        "ShoulderFE": false,
+        "ShoulderIE": false,
+        "ElbowFE": false,
+        "WristPS": false,
+        "Index": false,
+        "Grasp": false
+    },
+    "Thumbnail": "https://cdn.shopify.com/s/files/1/0449/6644/5210/files/7_blog_pic_1_480x480.png?v=1633597368",
+    "Status": "Finished",
+    "Date": "2024-04-08T07:17:53.680Z",
+    "Duration": 11,
+    "Score": 0.11,
+    "HighScore": 0.11,
+    "Rating": "Like",
+    "OverallRating": 0.1,
+    "Movements": [
+        {
+            "t": 11111,
+            "SFE": 1,
+            "SHFE": 1,
+            "SIE": -1,
+            "EFE": 1,
+            "RE": 1,
+            "A_trunk_Z": 1,
+            "A_trunk_Y": 1,
+            "A_trunk_X": -1,
+            "G_trunk_Z": -1,
+            "G_trunk_Y": 1,
+            "G_trunk_X": 1,
+            "M_trunk_Z": -1,
+            "M_trunk_Y": -1,
+            "M_trunk_X": -1,
+            "A_arm_Z": -1,
+            "A_arm_Y": 1,
+            "A_arm_X": 1,
+            "G_arm_Z": -1,
+            "G_arm_Y": 1,
+            "G_arm_X": 1,
+            "M_arm_Z": -1,
+            "M_arm_Y": 1,
+            "M_arm_X": -1
+        },
+        {
+            "t": 11112,
+            "SFE": 1,
+            "SHFE": 1,
+            "SIE": -1,
+            "EFE": 1,
+            "RE": 1,
+            "A_trunk_Z": 1,
+            "A_trunk_Y": 1,
+            "A_trunk_X": -1,
+            "G_trunk_Z": -1,
+            "G_trunk_Y": 1,
+            "G_trunk_X": 1,
+            "M_trunk_Z": -1,
+            "M_trunk_Y": -1,
+            "M_trunk_X": -1,
+            "A_arm_Z": -1,
+            "A_arm_Y": 1,
+            "A_arm_X": 1,
+            "G_arm_Z": -1,
+            "G_arm_Y": 1,
+            "G_arm_X": 1,
+            "M_arm_Z": -1,
+            "M_arm_Y": 1,
+            "M_arm_X": -1
+        }
+    ],
+    "Fatigue":[
+        {
+            "t": 11111,
+            "value": 0.0
+        },
+        {
+            "t": 11211,
+            "value": 0.11
+        },
+        {
+            "t": 11311,
+            "value": 0.21
+        }
+    ],
+    "MovementCompensation":[
+        {
+            "t": 11111,
+            "types": [
+                1,
+                2
+            ]
+        },
+        {
+            "t": 11121,
+            "types": [
+                1,
+                2
+            ]
+        },
+        {
+            "t": 11131,
+            "types": [
+                1,
+                2
+            ]
+        }
+    ]
+}
+
