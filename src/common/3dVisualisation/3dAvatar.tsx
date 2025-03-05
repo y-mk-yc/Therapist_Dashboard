@@ -304,8 +304,6 @@ export const Avatar = () =>
     const armRanges = getArmRanges(allDates[selectedDate]);
     const valueText = `${allDates[selectedDate].toLocaleDateString()}`;
 
-    console.log("selectedDate", valueText);
-    console.log("armRanges", armRanges);
 
     return <>
         <div className={'flex gap-2 items-center whitespace-nowrap'}>

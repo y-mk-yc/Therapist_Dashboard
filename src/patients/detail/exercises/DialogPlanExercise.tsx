@@ -1,29 +1,38 @@
-import React, {FC, useEffect, useState} from "react";
-import {useAppSelector} from "../../../store/store";
-import {Dialog} from "../../../common/dialogs/Dialog";
-import {LabeledRange, LabeledSelect, LabeledTimeInputWithSelect} from "../../../common/Inputs";
-import {LoggedInUser} from "../../../store/slices/userSlice";
-import {
+import React, { FC, useEffect, useState } from "react";
+import { useAppSelector } from "../../../store/store";
+import { Dialog } from "../../../common/dialogs/Dialog";
+import { LabeledRange, LabeledSelect, LabeledTimeInputWithSelect } from "../../../common/Inputs";
+import { LoggedInUser } from "../../../store/slices/userSlice";
+import
+{
     EditablePrescription, OnlineVariableSession, Prescription,
 } from "../../../store/rehybApi";
 import dayjs from "dayjs";
-import {getDateString} from "../../../common/dateUtils";
-import {isEditablePrescription} from "./Exercises";
-
+import { getDateString } from "../../../common/dateUtils";
+import { isEditablePrescription } from "./Exercises";
+import
+{
+    useUpdateExercisePlanMutation,
+} from '../../../store/rehybApi'
 
 export const DialogPlanExercise = (props: {
     onDone: () => void,
+    patientId: string,
+    pendingToDelete: string[],
     day: Date,
     prescriptionID: string,
     setExercisesAndPrescriptions: (value: Record<string, (OnlineVariableSession | Prescription | EditablePrescription)[]>) => void,
     exercisesAndPrescriptions: Record<string, (OnlineVariableSession | Prescription | EditablePrescription)[]>,
     reeditPrescription?: EditablePrescription //这个是用来编辑的，如果有的话，就是编辑刚拖入且没有save的editablePrescription，没有的话就是新建editablePrescription
     defaultRehybSetup?: string
-}) => {
+}) =>
+{
     const [exerciseTime, setExerciseTime] = useState(props.day);
     const [exerciseDuration, setExerciseDuration] = useState(() =>
         props.reeditPrescription ? props.reeditPrescription.Duration : 1
     );
+
+    const [updateExercisePlan] = useUpdateExercisePlanMutation();
     const [difficulty, setDifficulty] = useState(() =>
         props.reeditPrescription ? props.reeditPrescription.Difficulty : 0
     );
@@ -34,17 +43,19 @@ export const DialogPlanExercise = (props: {
     //可以根据Date字符串后面加一些东西来区分exercise的时间有没有设置好，以此来判断是isInClinc还是isAtHome创建的exercise
 
 
-    const onCreate = () => {
+    const onCreate = async () =>
+    {
         const editablePrescription =
-            {
-                ...(props.exercisesAndPrescriptions[getDateString(props.day)].find((item) =>
-                    isEditablePrescription(item) && item.PrescriptionID === props.prescriptionID
-                ) as EditablePrescription)
-            };
+        {
+            ...(props.exercisesAndPrescriptions[getDateString(props.day)].find((item) =>
+                isEditablePrescription(item) && item.PrescriptionID === props.prescriptionID
+            ) as EditablePrescription)
+        };
         editablePrescription.Date = exerciseTime.toISOString();
         editablePrescription.Duration = exerciseDuration;
         editablePrescription.Difficulty = difficulty;
         editablePrescription.ReHybSetup = rehybSetting;
+
 
         // PrescriptionID: string;
         // Date: string;
@@ -56,7 +67,7 @@ export const DialogPlanExercise = (props: {
         // ReHybSetup: string;
         // Editable: boolean;
 
-        const newExercisesAndPrescriptions = {...props.exercisesAndPrescriptions};
+        const newExercisesAndPrescriptions = { ...props.exercisesAndPrescriptions };
         //去除原来的，加入新的
         newExercisesAndPrescriptions[getDateString(props.day)] = newExercisesAndPrescriptions[getDateString(props.day)].filter((item) =>
             !isEditablePrescription(item) || item.PrescriptionID !== props.prescriptionID
@@ -64,12 +75,26 @@ export const DialogPlanExercise = (props: {
         newExercisesAndPrescriptions[getDateString(props.day)].push(editablePrescription);
 
         props.setExercisesAndPrescriptions(newExercisesAndPrescriptions);
+        const newPrescriptions: EditablePrescription[] = [];
+        for (const day in newExercisesAndPrescriptions)
+        {
+            newPrescriptions.push(...newExercisesAndPrescriptions[day].filter(isEditablePrescription));
+        }
+        console.log({ newPrescriptions })
+        const rt = await updateExercisePlan({
+            PatientID: props.patientId!,
+            PendingToDelete: [],
+            EditablePrescriptions: newPrescriptions,
+        });
+        console.log({ rt })
         props.onDone();
     }
 
 
-    useEffect(() => {  //如果是atHome模式，就设置为当天的开始
-        if (!isInClinic) {
+    useEffect(() =>
+    {  //如果是atHome模式，就设置为当天的开始
+        if (!isInClinic)
+        {
             const day = props.day;
             //设置为一天的开始
             day.setHours(0, 0, 0, 0);
@@ -81,9 +106,11 @@ export const DialogPlanExercise = (props: {
     const timeError = createDisabled ? "Time cannot be in the past" : "";
     // console.log(`isinClinic: ${isInClinic}`);
 
-    return <Dialog onClose={() => {
-        if (!props.reeditPrescription) {
-            const newExercisesAndPrescriptions = {...props.exercisesAndPrescriptions};
+    return <Dialog onClose={() =>
+    {
+        if (!props.reeditPrescription)
+        {
+            const newExercisesAndPrescriptions = { ...props.exercisesAndPrescriptions };
             newExercisesAndPrescriptions[getDateString(props.day)] = newExercisesAndPrescriptions[getDateString(props.day)].filter((item) =>
                 !isEditablePrescription(item) || item.PrescriptionID !== props.prescriptionID
             );

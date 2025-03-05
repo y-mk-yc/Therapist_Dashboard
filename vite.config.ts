@@ -1,15 +1,18 @@
-import {defineConfig} from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import svgr from "vite-plugin-svgr";
 import viteCompression from 'vite-plugin-compression'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [svgr(), react(), viteCompression({algorithm: 'brotliCompress'})],
+  plugins: [svgr(), react(), viteCompression({ algorithm: 'brotliCompress' })],
   assetsInclude: ['**/*.glb'],
+  optimizeDeps: {
+    include: ['react-chrono'], // Include react-chrono explicitly
+  },
   server: {
-    cors:{
-      origin:"Access-Control-Allow-Origin",
+    cors: {
+      origin: "Access-Control-Allow-Origin",
       credentials: true
     }
   }

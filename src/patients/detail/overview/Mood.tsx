@@ -1,9 +1,9 @@
-import {Chip} from './common/Chip'
-import {useState} from 'react'
-import {SimplePlotlyLineGraphPatientMood} from "../../../common/graphs/SimplePlotlyLineGraph";
-import {MoodEntry, useGetMoodAssessmentsQuery} from "../../../store/rehybApi";
-import {useParams} from "react-router-dom";
-import {LazyPlot} from "../../../common/graphs/LazyPlotly";
+import { Chip } from './common/Chip'
+import { useState } from 'react'
+import { SimplePlotlyLineGraphPatientMood } from "../../../common/graphs/SimplePlotlyLineGraph";
+import { MoodEntry, useGetMoodAssessmentsQuery } from "../../../store/rehybApi";
+import { useParams } from "react-router-dom";
+import { LazyPlot } from "../../../common/graphs/LazyPlotly";
 
 const COLORS = [
     '#74e03e',
@@ -16,7 +16,7 @@ const createPieData: (data: number[]) => Plotly.Data[] = (data) => [{
     marker: {
         colors: COLORS
     },
-    domain: {column: 0},
+    domain: { column: 0 },
     type: 'pie',
 }]
 
@@ -24,35 +24,41 @@ const pieLayout: Partial<Plotly.Layout> = {
     showlegend: false,
     height: 160,
     width: 200,
-    margin: {t: 16, b: 16, l: 16, r: 16},
+    margin: { t: 16, b: 16, l: 16, r: 16 },
 }
 
 const config: Partial<Plotly.Config> = {
     staticPlot: true,
 }
 
-export const Mood = () => {
+export const Mood = () =>
+{
     const [view, setView] = useState<'ALL_TIME' | 'LAST_7_DAYS'>('ALL_TIME')
-    const {patientId} = useParams()
-    const {data} = useGetMoodAssessmentsQuery({PatientID: patientId!})
+    const { patientId } = useParams()
+    const { data } = useGetMoodAssessmentsQuery({ PatientID: patientId! })
 
     let moodData: MoodEntry[] = [];
     let moodData7: MoodEntry[] = [];
-    if (data) {
+    if (data)
+    {
         moodData = data.moodAll ?? [];
         moodData7 = data.moodInSevenDays ?? [];
     }
 
-    const last7Days = Array.from({length: 7}, (_, i) => {
+    const last7Days = Array.from({ length: 7 }, (_, i) =>
+    {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        return {date} as { date: Date, Mood: number | null };
+        return { date } as { date: Date, Mood: number | null };
     });
-    for (const item of last7Days) {
+    for (const item of last7Days)
+    {
         const mood = moodData7.find(d => new Date(d.Date).toDateString() === item.date.toDateString());
-        if (mood) {
+        if (mood)
+        {
             item.Mood = mood.Mood === 'Positive' ? 1 : mood.Mood === 'Neutral' ? 0 : -1;
-        } else {
+        } else
+        {
             item.Mood = null;
         }
     }
@@ -85,15 +91,15 @@ export const Mood = () => {
         </div>
         <div className='flex gap-4 items-center justify-center h-full w-full'>
             {view == 'ALL_TIME' && <>
-                <LazyPlot data={pieData} layout={pieLayout} config={config}/>
+                <LazyPlot data={pieData} layout={pieLayout} config={config} />
                 <div className={'flex flex-col'}>
-                    <div className={'flex gap-2 items-center'}><Chip color={COLORS[0]}/>Positive</div>
-                    <div className={'flex gap-2 items-center'}><Chip color={COLORS[1]}/>Neutral</div>
-                    <div className={'flex gap-2 items-center'}><Chip color={COLORS[2]}/>Negative</div>
+                    <div className={'flex gap-2 items-center'}><Chip color={COLORS[0]} />Positive</div>
+                    <div className={'flex gap-2 items-center'}><Chip color={COLORS[1]} />Neutral</div>
+                    <div className={'flex gap-2 items-center'}><Chip color={COLORS[2]} />Negative</div>
                 </div>
             </>}
             {view == 'LAST_7_DAYS' && <>
-                <SimplePlotlyLineGraphPatientMood data={lineData} dates={dates} height={160} width={320}/>
+                <SimplePlotlyLineGraphPatientMood data={lineData} dates={dates} height={160} width={320} />
             </>}
         </div>
     </>

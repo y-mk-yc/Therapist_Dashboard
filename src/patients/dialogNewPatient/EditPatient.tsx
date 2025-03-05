@@ -1,4 +1,5 @@
-import {
+import
+{
     EmailRegex,
     LabelBox, LabeledAvatarFileInput, LabeledCheckboxGroup, LabeledConfirmPasswordInput,
     LabeledInput,
@@ -7,9 +8,10 @@ import {
     LabeledTextArea,
     LabeledToBase64FileInput, Placeholder
 } from "../../common/Inputs";
-import {divWrapper} from "../../common/styleUtils";
-import React, {useState, useEffect} from "react";
-import {
+import { divWrapper } from "../../common/styleUtils";
+import React, { useState, useEffect } from "react";
+import
+{
     Patient,
     useUpdatePatientsMutation,
     UserInfo,
@@ -17,53 +19,56 @@ import {
     useGetUsermodelByPatientIdQuery,
     InterestTags
 } from "../../store/rehybApi";
-import {formatDate, parseYYYYMMDD} from "../../common/dateUtils";
-import {Loader} from "../../common/Loader";
+import { formatDate, parseYYYYMMDD } from "../../common/dateUtils";
+import { Loader } from "../../common/Loader";
 import SparkMD5 from "spark-md5";
-import {v4 as uuidv4} from "uuid";
+// import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
-import {getUrl} from "../../urlPicker";
+import { getUrl } from "../../urlPicker";
 
-const baseUrl = getUrl();
+const baseUrl = getUrl('auth');
 
 
 const Grid = divWrapper('grid grid-cols-[repeat(2,1fr)] grid-rows-[repeat(6,auto)] gap-x-6 gap-y-2')
 
-export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void }) => {
-    const [updatePatient, {isLoading, isError}] = useUpdatePatientsMutation()
-    const {data: patient} = useGetPatientsByPatientIdQuery({PatientID: props.patientToEdit.PatientID})
-    const {data: userModel} = useGetUsermodelByPatientIdQuery({PatientID: props.patientToEdit.PatientID})
+export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void }) =>
+{
+    const [updatePatient, { isLoading, isError }] = useUpdatePatientsMutation()
+    const { data: patient } = useGetPatientsByPatientIdQuery({ PatientID: props.patientToEdit.PatientID })
+    const { data: userModel } = useGetUsermodelByPatientIdQuery({ PatientID: props.patientToEdit.PatientID })
 
     const [patientData, setPatientData] =
         useState<Required<UserInfo>>
-        ( //UserInfo的所有属性都是必须的
-            {
-                name: '',
-                gender: 'Male',
-                email: '@',
-                phone: '',
-                password: '',
-                birthday: '',
-                image: '',
-                weight: 70,
-                height: 170,
-                strokeDate: '',
-                dominantArm: 'RIGHT',
-                pareticSide: 'RIGHT',
-                strokeType: 'Ischemic',
-                visionCorrection: '0/0',
-                note: '',
-                defaultReHybSetup: 'DTU-Setup',
-                interests: []
-            }
-        )
+            ( //UserInfo的所有属性都是必须的
+                {
+                    name: '',
+                    gender: 'Male',
+                    email: '@',
+                    phone: '',
+                    password: '',
+                    birthday: '',
+                    image: '',
+                    weight: 70,
+                    height: 170,
+                    strokeDate: '',
+                    dominantArm: 'RIGHT',
+                    pareticSide: 'RIGHT',
+                    strokeType: 'Ischemic',
+                    visionCorrection: '0/0',
+                    note: '',
+                    defaultReHybSetup: 'DTU-Setup',
+                    interests: []
+                }
+            )
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isPasswordValid, setIsPasswordValid] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [isEmailValid, setIsEmailValid] = useState(false);
 
-    useEffect(() => {
-        if (patient && userModel) {
+    useEffect(() =>
+    {
+        if (patient && userModel)
+        {
             setPatientData({
                 name: patient.Name ?? '',
                 gender: userModel.Gender ?? 'Male',
@@ -71,7 +76,7 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
                 phone: patient.Phone ?? '',
                 password: '',
                 //将birthday转换为本地时间
-                birthday: userModel.Birthday ? formatDate(new Date(userModel.Birthday)): '',
+                birthday: userModel.Birthday ? formatDate(new Date(userModel.Birthday)) : '',
                 image: patient.Photo ?? '',
                 weight: userModel.Weight ?? 70,
                 height: userModel.Height ?? 170,
@@ -91,7 +96,8 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
 
 
     const [file, setFile] = useState<File | null>(null);
-    const uploadAvatarFile = async () => {
+    const uploadAvatarFile = async () =>
+    {
         if (!file) return;
 
         const md5 = new SparkMD5.ArrayBuffer();
@@ -109,7 +115,8 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
         formData.append('fileName', file.name);
         formData.append('fileMD5', fileMD5);
 
-        try {
+        try
+        {
             const uploadFileresponse = await axios.post('/' + patientData.email, formData, {
                 baseURL: baseUrl + `/TherapistProfiles/uploadAvatar`,
                 headers: {
@@ -117,7 +124,8 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
                 }
             });
             console.log(uploadFileresponse);
-        } catch (error) {
+        } catch (error)
+        {
             console.error('Error uploading file:', error);
         }
     };
@@ -134,24 +142,30 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
     const createEnabled =
         showNewPassword ?
             ((Object.keys(patientData) as (keyof typeof patientData)[])
-                .reduce((prev, current) => {
-                    if (current === 'image' || current === 'note' || typeof patientData[current] !== 'string') {
+                .reduce((prev, current) =>
+                {
+                    if (current === 'image' || current === 'note' || typeof patientData[current] !== 'string')
+                    {
                         return prev;
                     }
                     return (typeof patientData[current] === 'string') && (patientData[current] as string).length > 0 && prev;
                 }, true) && patientData.password === confirmPassword && !!patientData.phone && isEmailValid && isPasswordValid)
             :
             ((Object.keys(patientData) as (keyof typeof patientData)[])
-                .reduce((prev, current) => {
-                    if (current === 'image' || current === 'note' || current === "password" || typeof patientData[current] !== 'string') {
+                .reduce((prev, current) =>
+                {
+                    if (current === 'image' || current === 'note' || current === "password" || typeof patientData[current] !== 'string')
+                    {
                         return prev;
                     }
                     return (typeof patientData[current] === 'string') && (patientData[current] as string).length > 0 && prev;
                 }, true) && !!patientData.phone && isEmailValid);
 
 
-    const onUpdate = async () => {
-        try {
+    const onUpdate = async () =>
+    {
+        try
+        {
             const { password, ...patientDataWithoutPassword } = patientData;
             const result = await updatePatient({
                 PatientID: props.patientToEdit.PatientID,
@@ -164,7 +178,8 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
             })
             uploadAvatarFile();
             props.cancel()
-        } catch (e) {
+        } catch (e)
+        {
             console.error("Failed to update patient", e)
         }
     }
@@ -172,11 +187,11 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
     // console.log("createEnabled", createEnabled)
     // console.log("isEmailValid", isEmailValid)
     // console.log("isPasswordValid", isPasswordValid)
-    if (!patient || !userModel) return <Loader/>
+    if (!patient || !userModel) return <Loader />
 
 
     if (isLoading)
-        return <Loader/>
+        return <Loader />
 
 
     return <>
@@ -198,10 +213,10 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
                     onValueSet={createPatientDataSetter('gender')}
                     value={patientData.gender}
                     values={[
-                        {text: 'Male', value: 'Male'},
-                        {text: 'Female', value: 'Female'},
-                        {text: 'Other', value: 'Other'},
-                    ]}/>
+                        { text: 'Male', value: 'Male' },
+                        { text: 'Female', value: 'Female' },
+                        { text: 'Other', value: 'Other' },
+                    ]} />
                 <LabeledPhoneInput
                     label={'Phone'}
                     onValueSet={createPatientDataSetter('phone')}
@@ -245,7 +260,7 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
                 <></>
                 {showNewPassword && (
                     <>
-                        <Placeholder/>
+                        <Placeholder />
                         <LabeledPasswordEmailInput
                             type={'password'}
                             label={'New password'} placeholder={'Enter password'}
@@ -274,7 +289,7 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
                     placeholder={'Enter here'}
                     onValueSet={createPatientDataSetter('strokeType')}
                     value={patientData.strokeType}
-                    values={[{value: 'ischemic', text: 'Ischemic stroke'}]}/>
+                    values={[{ value: 'ischemic', text: 'Ischemic stroke' }]} />
                 <LabeledInput
                     type={'date'}
                     label={'Date of stroke'}
@@ -287,21 +302,21 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
                     placeholder={'Enter here'}
                     onValueSet={createPatientDataSetter('pareticSide')}
                     value={patientData.pareticSide}
-                    values={[{text: 'Right', value: 'Right'}, {text: 'Left', value: 'Left'},]}/>
+                    values={[{ text: 'Right', value: 'Right' }, { text: 'Left', value: 'Left' },]} />
                 <LabeledSelect
                     label={'Dominant side'}
                     placeholder={'Enter here'}
                     onValueSet={createPatientDataSetter('dominantArm')}
                     value={patientData.dominantArm}
-                    values={[{text: 'Right', value: 'Right'}, {text: 'Left', value: 'Left'},]}/>
+                    values={[{ text: 'Right', value: 'Right' }, { text: 'Left', value: 'Left' },]} />
 
                 <LabeledCheckboxGroup
                     label={'Interests'}
-                    values={[{value: 'Sports', text: 'Sports'}, {value: 'Cooking', text: 'Cooking'},
-                        {value: 'Household', text: 'Household'}, {value: 'Gardening', text: 'Gardening'},
-                        {value: 'ADL', text: 'ADL'}, {value: 'Nature', text: 'Nature'},
-                        {value: 'Competition', text: 'Competition'}, {value: 'Other', text: 'Other'}]}
-                    onValueSet={(selectedValues) => setPatientData({...patientData, interests: selectedValues})}
+                    values={[{ value: 'Sports', text: 'Sports' }, { value: 'Cooking', text: 'Cooking' },
+                    { value: 'Household', text: 'Household' }, { value: 'Gardening', text: 'Gardening' },
+                    { value: 'ADL', text: 'ADL' }, { value: 'Nature', text: 'Nature' },
+                    { value: 'Competition', text: 'Competition' }, { value: 'Other', text: 'Other' }]}
+                    onValueSet={(selectedValues) => setPatientData({ ...patientData, interests: selectedValues })}
                     selectedValues={patientData.interests}
                     className={'flex'}
                 />
@@ -309,25 +324,27 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
                     <LabelBox label={'Corrected vision'}>
                         <div className={'flex gap-2 items-center'}>
                             <input type='number' className={`w-[100px]`}
-                                   value={patientData.visionCorrection.split('/')[0]}
-                                   onChange={(e) => {
-                                       const prev = patientData.visionCorrection.split('/')[1]
-                                       setPatientData({
-                                           ...patientData,
-                                           visionCorrection: `${e.target.value}/${prev}`
-                                       })
-                                   }}
+                                value={patientData.visionCorrection.split('/')[0]}
+                                onChange={(e) =>
+                                {
+                                    const prev = patientData.visionCorrection.split('/')[1]
+                                    setPatientData({
+                                        ...patientData,
+                                        visionCorrection: `${e.target.value}/${prev}`
+                                    })
+                                }}
                             />
                             {'/'}
                             <input type='number' className={`w-[100px]`}
-                                   value={patientData.visionCorrection.split('/')[1]}
-                                   onChange={(e) => {
-                                       const prev = patientData.visionCorrection.split('/')[0]
-                                       setPatientData({
-                                           ...patientData,
-                                           visionCorrection: `${prev}/${e.target.value}`
-                                       })
-                                   }}
+                                value={patientData.visionCorrection.split('/')[1]}
+                                onChange={(e) =>
+                                {
+                                    const prev = patientData.visionCorrection.split('/')[0]
+                                    setPatientData({
+                                        ...patientData,
+                                        visionCorrection: `${prev}/${e.target.value}`
+                                    })
+                                }}
                             />
                         </div>
                     </LabelBox>
@@ -336,11 +353,11 @@ export const EditPatient = (props: { patientToEdit: Patient, cancel: () => void 
                         onValueSet={createPatientDataSetter('defaultReHybSetup')}
                         value={patientData.defaultReHybSetup}
                         values={[
-                            {text: 'DTU-Setup', value: 'DTU-Setup'},
-                            {text: 'HP-1', value: 'HP-1'},
-                            {text: 'HP-2', value: 'HP-2'},
-                            {text: 'SL', value: 'SL'},
-                        ]}/>
+                            { text: 'DTU-Setup', value: 'DTU-Setup' },
+                            { text: 'HP-1', value: 'HP-1' },
+                            { text: 'HP-2', value: 'HP-2' },
+                            { text: 'SL', value: 'SL' },
+                        ]} />
                     <LabeledAvatarFileInput
                         label={'Avatar'}
                         onValueSet={setFile}

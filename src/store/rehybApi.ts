@@ -1,8 +1,9 @@
-import {emptySplitApi as api} from "./emptyApi";
+import { emptySplitApi as api } from "./emptyApi";
 import Cookies from 'js-cookie';
-import {TherapyGoalsState} from "../patients/detail/overview/TherapyGoals";
-import {BodyPart} from "../patients/detail/data/Data";
-import {
+import { TherapyGoalsState } from "../patients/detail/overview/TherapyGoals";
+import { BodyPart } from "../patients/detail/data/Data";
+import
+{
     NewSessionData,
     ManualCompensationRecord,
     PredictionCompensationRecord
@@ -23,10 +24,19 @@ export const addTagTypes = [
 ] as const; //as const: 类型断言，将数组声明为只读数组，长度固定，元素类型不可变，元素类型为字面量类型
 
 //retrieve the TherapistID from the cookie
-export const getTherapistIDFromCookie = () => {
-    console.log("result of getting the therapistID:" + Cookies.get('TherapistID'));
+export const getTherapistIDFromCookie = () =>
+{
+    // console.log("result of getting the therapistID:" + Cookies.get('TherapistID'));
     return Cookies.get('TherapistID');
 };
+
+export const getIdFromCookie = () =>
+{
+
+    // console.log("result of getting the therapistID:" + Cookies.get('_id'));
+    return Cookies.get('_id');
+};
+
 
 const injectedRtkApi = api
     .enhanceEndpoints({
@@ -35,7 +45,7 @@ const injectedRtkApi = api
     .injectEndpoints({
         endpoints: (build) => ({
             getMe: build.query<GetMeApiResponse, GetMeApiArg>({
-                query: () => ({url: `/TherapistProfiles/me/${getTherapistIDFromCookie()}`}),
+                query: () => ({ url: `/TherapistProfiles/me/${getTherapistIDFromCookie()}` }),
                 providesTags: ["me"],
             }),
             // postMeLogout: build.mutation<PostMeLogoutApiResponse, PostMeLogoutApiArg>(
@@ -259,17 +269,23 @@ const injectedRtkApi = api
                 //在<Login/>组件中，点击Login按钮后，调用onLogin函数，然后调用loginMutation，
                 // loginMutation调用postAuthLogin这个mutation，然后调用这个mutation的query函数，发送post请求
                 //如果email和password正确，就会返回TherapistID和Token，然后被保存在cookies中
-                async onQueryStarted(arg, {queryFulfilled}) {
-                    try {
-                        const {data} = await queryFulfilled;
-                        const {TherapistID, Token} = data;
+                async onQueryStarted(arg, { queryFulfilled })
+                {
+                    try
+                    {
+                        const { data } = await queryFulfilled;
+                        const { TherapistID, Token, _id } = data;
 
+                        console.log("here:", { data })
                         console.log("trying to save the data " + data.TherapistID);
                         // Save TherapistID and Token in cookies
                         const expireTime = new Date(new Date().getTime() + 1000 * 60 * 60 * 2); //2 hours
-                        Cookies.set('TherapistID', TherapistID, {expires: expireTime}); //expires: 0.1 means the cookie will expire in 0.1 days
-                        Cookies.set('Token', Token, {expires: expireTime});
-                    } catch (error) {
+
+                        Cookies.set('_id', _id, { expires: expireTime });
+                        Cookies.set('TherapistID', TherapistID, { expires: expireTime }); //expires: 0.1 means the cookie will expire in 0.1 days
+                        Cookies.set('Token', Token, { expires: expireTime });
+                    } catch (error)
+                    {
                         console.log("Authentication failed, Cookies of Therapist and Token not set", error);
                     }
                 },
@@ -305,7 +321,7 @@ const injectedRtkApi = api
             }),
 
             getActivityStatus: build.query<GetActivityStatusResponse, GetActivityStatusArg>({
-                query: () => ({url: `/Usermodels/activityStatus/${getTherapistIDFromCookie()}`}),
+                query: () => ({ url: `/Usermodels/activityStatus/${getTherapistIDFromCookie()}` }),
                 providesTags: ["usermodels"],
             }),
             getAppointmentsByTherapistIdAndDate: build.query<GetAppointmentsByTherapistIdAndDateApiResponse, GetAppointmentsByTherapistIdAndDateApiArg>({
@@ -317,12 +333,26 @@ const injectedRtkApi = api
                 }),
                 providesTags: ["appointments"],
             }),
+            //Yingli
+            postAppointmentsByTherapistIdAndDate: build.mutation<PostAppointmentsByTherapistIdAndDateApiResponse, PostAppointmentsByTherapistIdAndDateApiArg>({
+                query: (queryArg) => ({
+                    url: `/Appointments/${getTherapistIDFromCookie()}`,
+                    method: "POST",
+                    body: queryArg.Appointment
+                }),
+                invalidatesTags: ["appointments"],
+            }),
+            DeleteAppointmentsByAppointmentId: build.mutation<DeleteAppointmentsByAppointmentIdApiResponse, DeleteAppointmentsByAppointmentIdApiArg>({
+                query: (queryArg) => ({
+                    url: `/Appointments/${queryArg.ID}`,
+                    method: "DELETE"
+                }),
+                invalidatesTags: ["appointments"],
+            }),
             getOverview: build.query<GetOverviewApiResponse, GetOverviewApiArg>({
-                query: () => ({url: `/TherapistProfiles/GetOverview/${getTherapistIDFromCookie()}`}),
+                query: () => ({ url: `/TherapistProfiles/GetOverview/${getTherapistIDFromCookie()}` }),
                 providesTags: ["usermodels", "therapists", "exerciseSessions"],
             }),
-
-
             getActivePatients: build.query<GetPatientsApiResponse, GetPatientsApiArg>({
                 query: (queryArg) => ({
                     url: `/TherapistProfiles/GetActivePatientsProfiles/${getTherapistIDFromCookie()}`,
@@ -358,19 +388,21 @@ const injectedRtkApi = api
                 GetLatestOnlineVariableApiResponse,
                 GetLatestOnlineVariableApiArg
             >({
-                query: (queryArg) => ({url: `/OnlineVariables/lastActivity/${queryArg.PatientID}`}),
+                query: (queryArg) => ({ url: `/OnlineVariables/lastActivity/${queryArg.PatientID}` }),
                 providesTags: ["exerciseSessions"],
             }),
-            postPatients: build.mutation<PostPatientsApiResponse, PostPatientsApiArg>(
-                {
-                    query: (queryArg) => ({
-                        url: `/TherapistProfiles/postPatientOfOneTherapist/${getTherapistIDFromCookie()}`,
-                        method: "POST",
-                        body: queryArg.userInfo,
-                    }),
-                    invalidatesTags: ["patients", "usermodels"],
-                }
+            postPatients: build.mutation<PostPatientsApiResponse, PostPatientsApiArg>({
+                query: (queryArg) => ({
+                    url: `/TherapistProfiles/postPatientOfOneTherapist/${getTherapistIDFromCookie()}`,
+                    method: "POST",
+                    body: queryArg.userInfo,
+                }),
+                invalidatesTags: ["patients", "usermodels"],
+            }
             ),
+
+
+
             updatePatients: build.mutation<UpdatePatientsApiResponse, UpdatePatientsApiArg>(
                 {
                     query: (queryArg) => ({
@@ -412,16 +444,17 @@ const injectedRtkApi = api
                 GetPatientsByPatientIdApiResponse,
                 GetPatientsByPatientIdApiArg
             >({
-                query: (queryArg) => ({url: `/PatientProfiles/patient/${queryArg.PatientID}`}),
+                query: (queryArg) => ({ url: `/PatientProfiles/patient/${queryArg.PatientID}` }),
                 providesTags: ["patients"],
             }),
             getUsermodelByPatientId: build.query<
                 GetUsermodelByPatientIdApiResponse,
                 GetUsermodelByPatientIdApiArg
             >({
-                query: (queryArg) => ({url: `/Usermodels/patientProfile/${queryArg.PatientID}`}),
+                query: (queryArg) => ({ url: `/Usermodels/patientProfile/${queryArg.PatientID}` }),
                 providesTags: ["usermodels", "caregivers"],
             }),
+
             postPatientsByPatientIdContactPerson: build.mutation<
                 PostPatientsByPatientIdContactPersonApiResponse,
                 PostPatientsByPatientIdContactPersonApiArg
@@ -486,7 +519,7 @@ const injectedRtkApi = api
                 ExerciseCompletionRate,
                 getExerciseCompletionRateApiArg
             >({
-                query: (queryArg) => ({url: `/OnlineVariables/trainingStatus/${queryArg.PatientID}`}),
+                query: (queryArg) => ({ url: `/OnlineVariables/trainingStatus/${queryArg.PatientID}` }),
                 providesTags: ["exerciseSessions"],
             }),
 
@@ -495,21 +528,21 @@ const injectedRtkApi = api
                 getPatientPrescriptionsApiArg
             >({
                 //Gets all prescriptions for today
-                query: (queryArg) => ({url: `/Prescriptions/patient_exercises/${queryArg.PatientID}`}),
+                query: (queryArg) => ({ url: `/Prescriptions/patient_exercises/${queryArg.PatientID}` }),
                 providesTags: ["exerciseSessions"],
             }),
             getTodaysExercisesStatus: build.query< //patients-overview-Today's Exercises
                 getTodaysExercisesStatusApiResponse,
                 getTodaysExercisesStatusApiArg
             >({
-                query: (queryArg) => ({url: `/Prescriptions/GetTodaysExercisesStatus/${queryArg.sessionIDs.join(",")}`}),
+                query: (queryArg) => ({ url: `/Prescriptions/GetTodaysExercisesStatus/${queryArg.sessionIDs.join(",")}` }),
                 providesTags: ["exerciseSessions", "exercise"],
             }),
             getMoodAssessments: build.query< //patients-overview-Patient mood
                 getMoodAssessmentsApiResponse,
                 getMoodAssessmentsApiArg
             >({
-                query: (queryArg) => ({url: `/Assessments/MoodAndDate/${queryArg.PatientID}`}),
+                query: (queryArg) => ({ url: `/Assessments/MoodAndDate/${queryArg.PatientID}` }),
                 providesTags: ["exerciseSessions"],
             }),
             getPatientsByPatientIdExerciseSessions: build.query< //patients-overview-Activity time
@@ -526,7 +559,7 @@ const injectedRtkApi = api
                 GetPatientsByPatientIdDataApiResponse,
                 GetPatientsByPatientIdDataApiArg
             >({
-                query: (queryArg) => ({url: `/StateVariables/GetStateVariablesByPatientID/${queryArg.PatientID}`}),
+                query: (queryArg) => ({ url: `/StateVariables/GetStateVariablesByPatientID/${queryArg.PatientID}` }),
                 providesTags: ["stateVariables"],
             }),
 
@@ -534,8 +567,9 @@ const injectedRtkApi = api
                 updateTherapyGoalsByPatientIdApiResponse,
                 updateTherapyGoalsByPatientIdApiArg
             >({
-                query: (queryArg) => {
-                    const {PatientID, ...newbody} = queryArg;
+                query: (queryArg) =>
+                {
+                    const { PatientID, ...newbody } = queryArg;
                     return {
                         url: `/Usermodels/updateTherapyGoals/${queryArg.PatientID}`,
                         method: "PUT",
@@ -551,6 +585,7 @@ const injectedRtkApi = api
                 updateNotesByPatientIdApiArg
             >({
                 query: (queryArg) => ({
+                    // url: `/Usermodels/updateNotes/${queryArg.PatientID}`,
                     url: `/Usermodels/updateNotes/${queryArg.PatientID}`,
                     method: "PUT",
                     body: queryArg,
@@ -575,7 +610,7 @@ const injectedRtkApi = api
                 GetAllExerciseProtocolsApiResponse,
                 GetAllExerciseProtocolsApiArg
             >({
-                query: (queryArg) => ({url: `/RehybProtocols/GetAllExerciseProtocols`}),
+                query: (queryArg) => ({ url: `/RehybProtocols/GetAllExerciseProtocols` }),
                 providesTags: ["exercise"],
             }),
 
@@ -583,7 +618,7 @@ const injectedRtkApi = api
                 GetAllExerciseProtocolsByPatientIdApiResponse,
                 GetAllExerciseProtocolsByPatientIdApiArg
             >({
-                query: (queryArg) => ({url: `/RehybProtocols/GetAllExerciseProtocolsByPatientId/${queryArg.PatientID}`}),
+                query: (queryArg) => ({ url: `/RehybProtocols/GetAllExerciseProtocolsByPatientId/${queryArg.PatientID}` }),
                 providesTags: ["exercise"],
             }),
 
@@ -591,7 +626,7 @@ const injectedRtkApi = api
                 GetDefaultRehybSetupAndFreeToPlayProtocolsApiResponse,
                 GetDefaultRehybSetupAndFreeToPlayProtocolsApiArg
             >({
-                query: (queryArg) => ({url: `/Usermodels/GetDefaultRehybSetupAndFreeToPlayProtocols/${queryArg.PatientID}`}),
+                query: (queryArg) => ({ url: `/Usermodels/GetDefaultRehybSetupAndFreeToPlayProtocols/${queryArg.PatientID}` }),
                 providesTags: ["usermodels"],
             }),
 
@@ -599,8 +634,9 @@ const injectedRtkApi = api
                 updateFreeToPlayProtocolsByPatientIdApiResponse,
                 updateFreeToPlayProtocolsByPatientIdApiArg
             >({
-                query: (queryArg) => {
-                    const {PatientID, ...newbody} = queryArg;
+                query: (queryArg) =>
+                {
+                    const { PatientID, ...newbody } = queryArg;
                     return {
                         url: `/Usermodels/updateFreeToPlayProtocols/${queryArg.PatientID}`,
                         method: "PUT",
@@ -615,8 +651,9 @@ const injectedRtkApi = api
                 UpdateExercisePlanApiResponse,
                 UpdateExercisePlanApiArg
             >({
-                query: (queryArg) => {
-                    const {PatientID, ...newbody} = queryArg;
+                query: (queryArg) =>
+                {
+                    const { PatientID, ...newbody } = queryArg;
                     return {
                         url: `/Prescriptions/UpdateExercisePlan/${queryArg.PatientID}`,
                         method: "POST",
@@ -747,21 +784,21 @@ const injectedRtkApi = api
                 GetOnlineVariableAssessmentByPatientIdApiResponse,
                 GetOnlineVariableAssessmentByPatientIdApiArg
             >({
-                query: (queryArg) => ({url: `/Usermodels/patientProfile/${queryArg.PatientID}`}),
+                query: (queryArg) => ({ url: `/Usermodels/patientProfile/${queryArg.PatientID}` }),
                 providesTags: ["patients"],
             }),
             getOnlineVariableSessionByPatientId: build.query<
                 GetOnlineVariableSessionByPatientIdApiResponse,
                 GetOnlineVariableSessionByPatientIdApiArg
             >({
-                query: (queryArg) => ({url: `/OnlineVariables/patient/${queryArg.PatientID}`}),
+                query: (queryArg) => ({ url: `/OnlineVariables/patient/${queryArg.PatientID}` }),
                 providesTags: ["patients"],
             }),
             GetPrescriptionByPrescriptionID: build.query<
                 GetPrescriptionByPrescriptionIDApiResponse,
                 GetPrescriptionByPrescriptionIDApiArg
             >({
-                query: (queryArg) => ({url: `/Prescriptions/prescriptions_prescription/${queryArg.PrescriptionID}`}),
+                query: (queryArg) => ({ url: `/Prescriptions/prescriptions_prescription/${queryArg.PrescriptionID}` }),
                 providesTags: ["patients"],
             }),
 
@@ -769,7 +806,7 @@ const injectedRtkApi = api
                 getRehybProtocolsApiResponse,
                 getRehybProtocolsApiArg
             >({
-                query: (queryArg) => ({url: `/RehybProtocols/RehybProtocols/${queryArg.ProtocolID}`}),
+                query: (queryArg) => ({ url: `/RehybProtocols/RehybProtocols/${queryArg.ProtocolID}` }),
                 providesTags: ["patients"],
             }),
 
@@ -779,7 +816,7 @@ const injectedRtkApi = api
                 getPatientPrescriptionsApiArg
             >({
                 //gets all time prescriptions of patient
-                query: (queryArg) => ({url: `/Prescriptions/patient_exercises_all/${queryArg.PatientID}`}),
+                query: (queryArg) => ({ url: `/Prescriptions/patient_exercises_all/${queryArg.PatientID}` }),
                 providesTags: ["patients"],
             }),
             PostProtocolsBasedOnInterest: build.mutation<
@@ -793,10 +830,21 @@ const injectedRtkApi = api
                 }),
                 invalidatesTags: ["patients"],
             }),
+
+            GetAllThePatientsAndCaregivers: build.query<
+                GetAllThePatientsAndCaregiversResponse,
+                GetAllThePatientsAndCaregiversArg>({
+                    query: (queryArg) => ({
+                        url: `/TherapistProfiles/getAllThePatientsAndCaregivers/${queryArg.TherapistID}`,
+                    }),
+                    providesTags: ["patients"],
+
+                })
+
         }),
         overrideExisting: false,
     });
-export {injectedRtkApi as rehybApi};
+export { injectedRtkApi as rehybApi };
 export type GetMeApiResponse = /** status 200  */ UserDocument;
 
 export type UserDocument = {
@@ -905,6 +953,7 @@ export type GetExerciseSummaryByUserIdAndSessionIdApiArg = {
 };
 export type PostAuthLoginApiResponse = {
     /** status 200 If login succeeds */
+    _id: string,
     TherapistID: string;
     Token: string;
 }
@@ -913,14 +962,20 @@ export type PostAuthLoginApiArg = {
 };
 export type GetPatientsApiResponse = /** status 200  */ Patient[];
 export type GetPatientsApiArg = {
-    sortBy: "Name" | "status";
+    sortBy: "Name" | "lastTraining" | "ActivityStatus";
     asc: boolean;
     assigned: boolean;
 };
-export type PostPatientsApiResponse = /** status 200  */ Patient;
+
+
+export type PostPatientsApiResponse = {
+    PatientID: string
+} ///** status 200  */ Patient;
 export type PostPatientsApiArg = {
     userInfo: UserInfo;
 };
+
+
 
 export type UpdatePatientsApiResponse = /** status 200  */ Patient;
 export type UpdatePatientsApiArg = {
@@ -936,6 +991,9 @@ export type GetUsermodelByPatientIdApiResponse = /** status 200  */ UserModel;
 export type GetUsermodelByPatientIdApiArg = {
     PatientID: string;
 };
+
+
+
 export type GetOnlineVariableAssessmentByPatientIdApiResponse = /** status 200  */ OnlineVariableAssessment;
 export type GetOnlineVariableAssessmentByPatientIdApiArg = {
     PatientID: string;
@@ -1120,8 +1178,8 @@ export type Therapist = {
 
 export type InlineResponse200 =
     | {
-    Therapist?: Therapist;
-};/*
+        Therapist?: Therapist;
+    };/*
   | {
       //Admin: Admin;
     };*/
@@ -1404,6 +1462,8 @@ export type Patient = { //已处理
     Photo: any | null;
     Caregivers: string[]; //CaregiverID 的数组
     Therapists: string[]; //TherapistID 的数组
+    ActivityStatus?: string;//Online/Offline
+    lastTraining?: number
 }
 
 /*export type Patient = {//BasePatient & {
@@ -1732,10 +1792,11 @@ export type UserModel = { //已检查
         ShortTerm: TherapyGoal;
     };
     FreeToPlayProtocols?: string[];
-    "3DModel"?: string;
+    "redDModel"?: string;
     Contacts?: ContactPerson[];
     Notes?: Note[];
 }
+
 
 export type Note = { //已检查
     Date: string;
@@ -1822,21 +1883,21 @@ export type PatientIdManualAssessmentBody = { //已检查
     variable: "SHFE" | "SFE" | "SIE" | "EFE" | "WPS" | "HOC";
     date: string;
 } & (
-    | {
-    strength: number; //对应Muscle strength
-}
-    | {
-    angle: number; //对应Spasticity
-    speed: number;
-    torque: number;
-}
-    | {
-    timeToFatigue: number; //对应Endurance
-}
-    | {
-    minAngle: number; //对应ROM
-    maxAngle: number;
-}
+        | {
+            strength: number; //对应Muscle strength
+        }
+        | {
+            angle: number; //对应Spasticity
+            speed: number;
+            torque: number;
+        }
+        | {
+            timeToFatigue: number; //对应Endurance
+        }
+        | {
+            minAngle: number; //对应ROM
+            maxAngle: number;
+        }
     );
 export type PatientIdExerciseSessionsBody = {
     exerciseId: string;
@@ -1885,6 +1946,19 @@ export type InlineResponse2004 = {
     patientActivities: InlineResponse2004PatientActivities[];
     calendar: string;
 };
+
+//Yingli
+export type AppInfo = {
+    Starts: Date,
+    Ends: Date,
+    PatientID: string,
+    Name: string,
+    Note: string | null,
+    Title: string | null,
+    Location: string | null,
+    Address: string | null,
+    Code: String | null,
+}
 export const {
     useGetMeQuery,
     // usePostMeLogoutMutation,
@@ -1937,9 +2011,13 @@ export const {
     useAddPatientIntoActiveMutation,
     useGetPatientsByPatientIdQuery,
     useGetUsermodelByPatientIdQuery,   //根据patientID获得对应user model
+
     useArchivePatientsByPatientIdMutation,
     useGetActivityStatusQuery, //Dashboard-"Your Patients"
     useGetAppointmentsByTherapistIdAndDateQuery, //Dashboard-"Patients Today/Patients at 19/03/2024,etc."
+    usePostAppointmentsByTherapistIdAndDateMutation,// Create new appointment
+    useDeleteAppointmentsByAppointmentIdMutation,// Create new appointment
+
     useGetOverviewQuery, //Dashboard-"Patient activities"
     useUpdateNotesByPatientIdMutation, //patients-Overview-"Leave a note"
     useGetInactiveCaregiversQuery,  //patients-Overview-Existing Caregivers,
@@ -1970,28 +2048,39 @@ export const {
     useGetExerciseSessionDetailQuery, ////Exercise Plan-Exercise Session Detail - Yuxuan Zhang's code
     useSkipPlannedPrescriptionMutation, //切换到patient页面时，将planned的prescription变成skipped
 
+    useGetAllThePatientsAndCaregiversQuery,
+
 
 } = injectedRtkApi;
 export type AddPatientIntoActiveApiResponse = Patient;
 export type AddPatientIntoActiveApiArg = {
     PatientID: string;
 };
-export type Appointment = {
-    AppointmentID: string;
-    TherapistID: string;
-    PatientID: string;
-    StartTime: string;
-    EndTime: string;
-    Photo: string;
-    Name: string;
-    AppointmentStatus: "Pending" | "Confirmed" | "Cancelled" | "Completed";
-}
+// export type Appointment = {
+//     AppointmentID: string;
+//     TherapistID: string;
+//     PatientID: string;
+//     StartTime: string;
+//     EndTime: string;
+//     Photo: string;
+//     Name: string;
+//     AppointmentStatus: "Pending" | "Confirmed" | "Cancelled" | "Completed";
+// }
 
-export type GetAppointmentsByTherapistIdAndDateApiResponse = Appointment[];
+//export type GetAppointmentsByTherapistIdAndDateApiResponse = Appointment[];
+export type GetAppointmentsByTherapistIdAndDateApiResponse = AppInfo[]; //any[]
 export type GetAppointmentsByTherapistIdAndDateApiArg = {
     StartDate: string;
 };
+export type PostAppointmentsByTherapistIdAndDateApiResponse = unknown;
+export type PostAppointmentsByTherapistIdAndDateApiArg = {
+    Appointment: AppInfo
+}
+export type DeleteAppointmentsByAppointmentIdApiResponse = unknown;
 
+export type DeleteAppointmentsByAppointmentIdApiArg = {
+    ID: string
+}
 export type PostPatientsByPatientIdContactPersonApiResponse = unknown; //patients-Overview-"Add Contact Person"
 export type PostPatientsByPatientIdContactPersonApiArg = {
     /** ID of the patient */
@@ -2032,9 +2121,9 @@ export type AddCaregiverIntoActiveApiArg = {
 
 export type GetCaregiverByEmailApiResponse =
     ContactPerson & {
-    Phone: string,
-    AccessRights: Permission[];
-};
+        Phone: string,
+        AccessRights: Permission[];
+    };
 export type GetCaregiverByEmailApiArg = {
     patientID: string;
     caregiverEmail: string;
@@ -2177,5 +2266,23 @@ export type GetExerciseSessionDetailApiArg = {
     SessionID: string;
 }
 
+
 export type SkipPlannedPrescriptionApiResponse = unknown;
 export type SkipPlannedPrescriptionApiArg = unknown;
+
+
+export type GetAllThePatientsAndCaregiversResponse = {
+    ActivePatients: [{
+        id: string,
+        Name: string,
+    }
+    ],
+    Caregivers: [{
+        id: string,
+        Name: string,
+    }
+    ]
+};
+export type GetAllThePatientsAndCaregiversArg = {
+    TherapistID: string;
+}

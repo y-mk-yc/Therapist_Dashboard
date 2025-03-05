@@ -1,20 +1,22 @@
-import {CircularProgress} from '../../../common/graphs/CircularProgress'
-import {FC, ReactNode, useState} from 'react'
-import {useParams} from "react-router-dom";
-import {
-    useGetPatientsByPatientIdDataQuery,
-    useGetUsermodelByPatientIdQuery
-} from "../../../store/rehybApi";
-import {Loader} from "../../../common/Loader";
-import {Tooltip} from "../../../common/dialogs/Tooltip";
-import {UserModel, StateVariable} from "../../../store/rehybApi";
+import { CircularProgress } from '../../../common/graphs/CircularProgress'
+import { FC, ReactNode, useState } from 'react'
+import { useParams } from "react-router-dom";
+import
+    {
+        useGetPatientsByPatientIdDataQuery,
+        useGetUsermodelByPatientIdQuery
+    } from "../../../store/rehybApi";
+import { Loader } from "../../../common/Loader";
+import { ReHybTooltip } from "../../../common/dialogs/Tooltip";
+import { UserModel, StateVariable } from "../../../store/rehybApi";
 
 
 export const calculateCondition =
     (stateVariable: StateVariable,
-     userModel: UserModel,
-     goal: 'shortTerm' | 'longTerm',
-     cutOffDate?: string) => {
+        userModel: UserModel,
+        goal: 'shortTerm' | 'longTerm',
+        cutOffDate?: string) =>
+    {
         /////////////////////////value of goals/////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////
         const quantification = goal === 'longTerm' ? userModel.TherapyGoals?.LongTerm?.Quantification :
@@ -56,25 +58,29 @@ export const calculateCondition =
 
         /////////////////////////value of stateVariables////////////////////////////
         ////////////////////////////////////////////////////////////////////////////
-        function findLatestByDate(items: { Date: string, [key: string]: any }[]) {
+        function findLatestByDate(items: { Date: string, [key: string]: any }[])
+        {
             if (!items || items.length === 0) return undefined;
             //如果Spasticity.ShoulderAA, Spasticity.ShoulderFE, Spasticity.ShoulderIE等等的数据是空数组或者字段根本不存在，就返回undefined
             const cutOff = cutOffDate ? new Date(cutOffDate) : new Date();
             const itemsBeforeCutOff = items.filter(i => new Date(i.Date) <= cutOff);
             if (itemsBeforeCutOff.length === 0) return undefined;
-            return itemsBeforeCutOff.reduce((latest, current) => {
+            return itemsBeforeCutOff.reduce((latest, current) =>
+            {
                 const latestDate = new Date(latest.Date);
                 const currentDate = new Date(current.Date);
                 return (currentDate > latestDate) ? current : latest;
             });
         }
 
-        function findOldestByDate(items: { Date: string, [key: string]: any }[]) {
+        function findOldestByDate(items: { Date: string, [key: string]: any }[])
+        {
             if (!items || items.length === 0) return undefined;
             const cutOff = cutOffDate ? new Date(cutOffDate) : new Date();
             const itemsBeforeCutOff = items.filter(i => new Date(i.Date) <= cutOff);
             if (itemsBeforeCutOff.length === 0) return undefined;
-            return itemsBeforeCutOff.reduce((oldest, current) => {
+            return itemsBeforeCutOff.reduce((oldest, current) =>
+            {
                 const oldestDate = new Date(oldest.Date);
                 const currentDate = new Date(current.Date);
                 return (currentDate < oldestDate) ? current : oldest;
@@ -84,7 +90,8 @@ export const calculateCondition =
         function calculateSpasticityValue(spasticity: {
             Date: string,
             Assessment: { Speed: string, Spasticity: { Angle: number, Torque: number }[] }[]
-        } | undefined) {
+        } | undefined)
+        {
             //所有出现的Torque值的平均值
             if (!spasticity) return undefined;
             const allTorque = spasticity.Assessment.flatMap(a => a.Spasticity.map(s => s.Torque));
@@ -251,56 +258,77 @@ export const calculateCondition =
 
         ////////////////////////////////////////////////////////////////////////////
         /////////////////////////value of stateVariables////////////////////////////
-        function areVariablesValid(...args: any[]) {
+        function areVariablesValid(...args: any[])
+        {
             return args.every(v => v !== undefined && !isNaN(v));
         }
 
-        function calculateROMProgress(latestROMValue: number, oldestROMValue: number, rangeGoalValue: number) {
-            if (latestROMValue >= rangeGoalValue) {
+        function calculateROMProgress(latestROMValue: number, oldestROMValue: number, rangeGoalValue: number)
+        {
+            if (latestROMValue >= rangeGoalValue)
+            {
                 return 1;
-            } else {
-                if (oldestROMValue >= rangeGoalValue) {
+            } else
+            {
+                if (oldestROMValue >= rangeGoalValue)
+                {
                     return 0;
-                } else {
+                } else
+                {
                     const progress = (latestROMValue - oldestROMValue) / (rangeGoalValue - oldestROMValue);
                     return progress <= 0 ? 0 : progress;
                 }
             }
         }
 
-        function calculateEnduranceProgress(latestEnduranceValue: number, oldestEnduranceValue: number, enduranceGoalValue: number) {
-            if (latestEnduranceValue >= enduranceGoalValue) {
+        function calculateEnduranceProgress(latestEnduranceValue: number, oldestEnduranceValue: number, enduranceGoalValue: number)
+        {
+            if (latestEnduranceValue >= enduranceGoalValue)
+            {
                 return 1;
-            } else {
-                if (oldestEnduranceValue >= enduranceGoalValue) {
+            } else
+            {
+                if (oldestEnduranceValue >= enduranceGoalValue)
+                {
                     return 0;
-                } else {
+                } else
+                {
                     const progress = (latestEnduranceValue - oldestEnduranceValue) / (enduranceGoalValue - oldestEnduranceValue);
                     return progress <= 0 ? 0 : progress;
                 }
             }
         }
 
-        function calculateSpasticityProgress(latestSpasticityValue: number, oldestSpasticityValue: number, spasticityGoalValue: number) {
-            if (latestSpasticityValue <= spasticityGoalValue) {
+        function calculateSpasticityProgress(latestSpasticityValue: number, oldestSpasticityValue: number, spasticityGoalValue: number)
+        {
+            if (latestSpasticityValue <= spasticityGoalValue)
+            {
                 return 1;
-            } else {
-                if (oldestSpasticityValue <= spasticityGoalValue) {
+            } else
+            {
+                if (oldestSpasticityValue <= spasticityGoalValue)
+                {
                     return 0;
-                } else {
+                } else
+                {
                     const progress = (oldestSpasticityValue - latestSpasticityValue) / (oldestSpasticityValue - spasticityGoalValue);
                     return progress <= 0 ? 0 : progress;
                 }
             }
         }
 
-        function calculateStrengthProgress(latestStrengthValue: number, oldestStrengthValue: number, strengthGoalValue: number) {
-            if (latestStrengthValue <= strengthGoalValue) {
+        function calculateStrengthProgress(latestStrengthValue: number, oldestStrengthValue: number, strengthGoalValue: number)
+        {
+            if (latestStrengthValue <= strengthGoalValue)
+            {
                 return 1;
-            } else {
-                if (oldestStrengthValue <= strengthGoalValue) {
+            } else
+            {
+                if (oldestStrengthValue <= strengthGoalValue)
+                {
                     return 0;
-                } else {
+                } else
+                {
                     const progress = (oldestStrengthValue - latestStrengthValue) / (oldestStrengthValue - strengthGoalValue);
                     return progress <= 0 ? 0 : progress;
                 }
@@ -413,22 +441,23 @@ export const calculateCondition =
         };
     }
 
-export const CurrentCondition = () => {
-    const {patientId} = useParams()
+export const CurrentCondition = () =>
+{
+    const { patientId } = useParams()
     const [goal, setGoal] = useState<'shortTerm' | 'longTerm'>('longTerm');
     const {
         data: stateVariable,
         isLoading: isLoadingSV,
         isError: isErrorSV
-    } = useGetPatientsByPatientIdDataQuery({PatientID: patientId!})
+    } = useGetPatientsByPatientIdDataQuery({ PatientID: patientId! })
     const {
         data: usermodel,
         isLoading: isLoadingUM,
         isError: isErrorUM
-    } = useGetUsermodelByPatientIdQuery({PatientID: patientId!})
+    } = useGetUsermodelByPatientIdQuery({ PatientID: patientId! })
 
 
-    if (isLoadingSV || isLoadingUM) return <Loader/>
+    if (isLoadingSV || isLoadingUM) return <Loader />
     if (isErrorSV || isErrorUM || !stateVariable || !usermodel)
         return <div className={`flex-col`}>
             <h3 className={'whitespace-nowrap'}>Patient current condition</h3>
@@ -453,47 +482,47 @@ export const CurrentCondition = () => {
         <div className='flex flex-wrap gap-2 gap-y-4'>
             {goal == 'longTerm' && <>
                 <LabeledProgress title={'Physical score'}
-                                 outOf={100}
-                                 score={longTermCondition?.physicalProgress !== undefined ? Math.round(longTermCondition.physicalProgress * 100) : undefined}
+                    outOf={100}
+                    score={longTermCondition?.physicalProgress !== undefined ? Math.round(longTermCondition.physicalProgress * 100) : undefined}
                     //如果longTermCondition 不存在，就返回undefined，表示没有goal的数据
-                                 tip={'Physical score is an average of physical scores for each body part. Each body ' +
-                                     'part\'s score consist of range of movement, strength, spasticity and time to fatigue. ' +
-                                     'The score is how well the measured movements match the movements of a healthy individuals.'}
-                                 leftColumn={
-                                     <div className={'flex flex-col'}>
-                                         <ScoreComponentRow title={'Shoulder'}
-                                                            score={longTermCondition?.shoulderProgress !== undefined ? Math.round(longTermCondition.shoulderProgress * 100) : undefined}
-                                                            outOf={100}/>
-                                         <ScoreComponentRow title={'Elbow'}
-                                                            score={longTermCondition?.elbowProgress !== undefined ? Math.round(longTermCondition.elbowProgress * 100) : undefined}
-                                                            outOf={100}/>
-                                         {<ScoreComponentRow title={'Wrist'}
-                                                             score={longTermCondition?.wristProgress !== undefined ? Math.round(longTermCondition.wristProgress * 100) : undefined}
-                                                             outOf={100}/>}
-                                         <ScoreComponentRow title={'Hand'}
-                                                            score={longTermCondition?.handProgress !== undefined ? Math.round(longTermCondition.handProgress * 100) : undefined}
-                                                            outOf={100}/>
-                                     </div>}
+                    tip={'Physical score is an average of physical scores for each body part. Each body ' +
+                        'part\'s score consist of range of movement, strength, spasticity and time to fatigue. ' +
+                        'The score is how well the measured movements match the movements of a healthy individuals.'}
+                    leftColumn={
+                        <div className={'flex flex-col'}>
+                            <ScoreComponentRow title={'Shoulder'}
+                                score={longTermCondition?.shoulderProgress !== undefined ? Math.round(longTermCondition.shoulderProgress * 100) : undefined}
+                                outOf={100} />
+                            <ScoreComponentRow title={'Elbow'}
+                                score={longTermCondition?.elbowProgress !== undefined ? Math.round(longTermCondition.elbowProgress * 100) : undefined}
+                                outOf={100} />
+                            {<ScoreComponentRow title={'Wrist'}
+                                score={longTermCondition?.wristProgress !== undefined ? Math.round(longTermCondition.wristProgress * 100) : undefined}
+                                outOf={100} />}
+                            <ScoreComponentRow title={'Hand'}
+                                score={longTermCondition?.handProgress !== undefined ? Math.round(longTermCondition.handProgress * 100) : undefined}
+                                outOf={100} />
+                        </div>}
                 />
                 <LabeledProgress title={'Cognitive score'}
-                                 outOf={100}
-                                 score={33} //totalCognitive
-                                 leftColumn={
-                                     <div className={'flex flex-col'}>
-                                         <ScoreComponentRow title={'ReHyb cog. score'}
-                                                            score={35}
-                                                            outOf={100}/>
-                                         <ScoreComponentRow title={'Neglect'}
-                                                            score={30}
-                                                            outOf={100}/>
-                                         <ScoreComponentRow title={'Aphasia'}
-                                                            score={40}
-                                                            outOf={100}/>
-                                         <ScoreComponentRow title={'Cognitive fatigue'}
-                                                            score={20}
-                                                            outOf={100}/>
-                                     </div>
-                                 } tip={`
+                    outOf={100}
+                    score={33} //totalCognitive
+                    leftColumn={
+                        <div className={'flex flex-col'}>
+                            <ScoreComponentRow title={'ReHyb cog. score'}
+                                score={35}
+                                outOf={100} />
+                            <ScoreComponentRow title={'Neglect'}
+                                score={30}
+                                outOf={100} />
+                            <ScoreComponentRow title={'Aphasia'}
+                                score={40}
+                                outOf={100} />
+                            <ScoreComponentRow title={'Cognitive fatigue'}
+                                score={20}
+                                outOf={100} />
+                        </div>
+                    } tip={`
                              Cognitive score is an average score of Rehyb cognitive score, cognitive fatigue, aphasia and neglect. 
                              More details about these variables can be found on the data/cognitive page.
                              `}
@@ -501,46 +530,46 @@ export const CurrentCondition = () => {
             </>}
             {goal == 'shortTerm' && <>
                 <LabeledProgress title={'Physical score'}
-                                 outOf={100}
-                                 score={shortTermCondition?.physicalProgress !== undefined ? Math.round(shortTermCondition.physicalProgress * 100) : undefined}
-                                 tip={'Physical score is an average of physical scores for each body part. Each body ' +
-                                     'part\'s score consist of range of movement, strength, spasticity and time to fatigue. ' +
-                                     'The score is how well the measured movements match the movements of a healthy individuals.'}
-                                 leftColumn={
-                                     <div className={'flex flex-col'}>
-                                         <ScoreComponentRow title={'Shoulder'}
-                                                            score={shortTermCondition?.shoulderProgress !== undefined ? Math.round(shortTermCondition.shoulderProgress * 100) : undefined}
-                                                            outOf={100}/>
-                                         <ScoreComponentRow title={'Elbow'}
-                                                            score={shortTermCondition?.elbowProgress !== undefined ? Math.round(shortTermCondition.elbowProgress * 100) : undefined}
-                                                            outOf={100}/>
-                                         {<ScoreComponentRow title={'Wrist'}
-                                                             score={shortTermCondition?.wristProgress !== undefined ? Math.round(shortTermCondition.wristProgress * 100) : undefined}
-                                                             outOf={100}/>}
-                                         <ScoreComponentRow title={'Hand'}
-                                                            score={shortTermCondition?.handProgress !== undefined ? Math.round(shortTermCondition.handProgress * 100) : undefined}
-                                                            outOf={100}/>
-                                     </div>}
+                    outOf={100}
+                    score={shortTermCondition?.physicalProgress !== undefined ? Math.round(shortTermCondition.physicalProgress * 100) : undefined}
+                    tip={'Physical score is an average of physical scores for each body part. Each body ' +
+                        'part\'s score consist of range of movement, strength, spasticity and time to fatigue. ' +
+                        'The score is how well the measured movements match the movements of a healthy individuals.'}
+                    leftColumn={
+                        <div className={'flex flex-col'}>
+                            <ScoreComponentRow title={'Shoulder'}
+                                score={shortTermCondition?.shoulderProgress !== undefined ? Math.round(shortTermCondition.shoulderProgress * 100) : undefined}
+                                outOf={100} />
+                            <ScoreComponentRow title={'Elbow'}
+                                score={shortTermCondition?.elbowProgress !== undefined ? Math.round(shortTermCondition.elbowProgress * 100) : undefined}
+                                outOf={100} />
+                            {<ScoreComponentRow title={'Wrist'}
+                                score={shortTermCondition?.wristProgress !== undefined ? Math.round(shortTermCondition.wristProgress * 100) : undefined}
+                                outOf={100} />}
+                            <ScoreComponentRow title={'Hand'}
+                                score={shortTermCondition?.handProgress !== undefined ? Math.round(shortTermCondition.handProgress * 100) : undefined}
+                                outOf={100} />
+                        </div>}
                 />
                 <LabeledProgress title={'Cognitive score'}
-                                 outOf={100}
-                                 score={60} //totalCognitive
-                                 leftColumn={
-                                     <div className={'flex flex-col'}>
-                                         <ScoreComponentRow title={'ReHyb cog. score'}
-                                                            score={55}
-                                                            outOf={100}/>
-                                         <ScoreComponentRow title={'Neglect'}
-                                                            score={70}
-                                                            outOf={100}/>
-                                         <ScoreComponentRow title={'Aphasia'}
-                                                            score={50}
-                                                            outOf={100}/>
-                                         <ScoreComponentRow title={'Cognitive fatigue'}
-                                                            score={67}
-                                                            outOf={100}/>
-                                     </div>
-                                 } tip={`
+                    outOf={100}
+                    score={60} //totalCognitive
+                    leftColumn={
+                        <div className={'flex flex-col'}>
+                            <ScoreComponentRow title={'ReHyb cog. score'}
+                                score={55}
+                                outOf={100} />
+                            <ScoreComponentRow title={'Neglect'}
+                                score={70}
+                                outOf={100} />
+                            <ScoreComponentRow title={'Aphasia'}
+                                score={50}
+                                outOf={100} />
+                            <ScoreComponentRow title={'Cognitive fatigue'}
+                                score={67}
+                                outOf={100} />
+                        </div>
+                    } tip={`
                              Cognitive score is an average score of Rehyb cognitive score, cognitive fatigue, aphasia and neglect. 
                              More details about these variables can be found on the data/cognitive page.
                              `}
@@ -550,7 +579,8 @@ export const CurrentCondition = () => {
     </div>
 }
 
-const ScoreComponentRow = (props: { title: string, score: number | undefined, outOf: number }) => {
+const ScoreComponentRow = (props: { title: string, score: number | undefined, outOf: number }) =>
+{
     return <div className={'flex'}>
         <span className={'flex-1 mr-4 whitespace-nowrap'}>{props.title}</span>
         {/*Shoulder，Elbow，Wrist，Hand*/}
@@ -564,12 +594,13 @@ const LabeledProgress: FC<{
     score: number | undefined
     outOf: number,
     tip: string
-}> = ({title, leftColumn, score, outOf, tip}) => {
+}> = ({ title, leftColumn, score, outOf, tip }) =>
+{
     return <div className='flex gap-2 justify-start flex-1'>
         <div className='flex flex-col gap-2 min-w-[200px]'>
             <div className={'flex items-center gap-2'}>
                 <span className='font-semibold whitespace-nowrap'>{title}</span>
-                <Tooltip tip={tip} className={'min-w-[300px]'}/>
+                <ReHybTooltip tip={tip} className={'min-w-[300px]'} />
             </div>
             {leftColumn}
         </div>

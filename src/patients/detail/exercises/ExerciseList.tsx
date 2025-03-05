@@ -1,16 +1,17 @@
-import {
+import
+{
     Exercise, TherapyFocus,
     useGetPatientsByPatientIdDataQuery,
     useGetUsermodelByPatientIdQuery, useGetAllExerciseProtocolsByPatientIdQuery
 } from "../../../store/rehybApi";
-import {useParams} from "react-router-dom";
-import {ReactNode, useState} from "react";
-import {Loader} from "../../../common/Loader";
-import {SearchBox, searchPredicate} from "../../../common/SearchBox";
-import {AiOutlineDrag} from "react-icons/ai";
-import {ExerciseCard} from "../../../common/ExerciseCard";
-import {createRoot, Root} from "react-dom/client";
-import {calculateCondition} from "../overview/CurrentCondition";
+import { useParams } from "react-router-dom";
+import { ReactNode, useState } from "react";
+import { Loader } from "../../../common/Loader";
+import { SearchBox, searchPredicate } from "../../../common/SearchBox";
+import { AiOutlineDrag } from "react-icons/ai";
+import { ExcersiceSamllCard, ExerciseCard } from "../../../common/ExerciseCard";
+import { createRoot, Root } from "react-dom/client";
+import { calculateCondition } from "../overview/CurrentCondition";
 
 let dragImage: HTMLDivElement | null = null;
 let dragRoot: Root | null = null;
@@ -19,30 +20,32 @@ export const ExerciseList = (props: {
     setDragged: (exercise: Exercise | null) => void,
     recommended: boolean,
     setRecommended: (value: boolean) => void
-}) => {
-    const {patientId} = useParams();
+}) =>
+{
+    const { patientId } = useParams();
     const {
         data: usermodel,
         isLoading: isLoadingUM,
         isError: isErrorUM
-    } = useGetUsermodelByPatientIdQuery({PatientID: patientId!});
-    const {data, isLoading, isError} = useGetAllExerciseProtocolsByPatientIdQuery({
+    } = useGetUsermodelByPatientIdQuery({ PatientID: patientId! });
+    const { data, isLoading, isError } = useGetAllExerciseProtocolsByPatientIdQuery({
         PatientID: patientId!
     });
     const {
         data: SV,
         isLoading: isLoadingSV,
         isError: isErrorSV
-    } = useGetPatientsByPatientIdDataQuery({PatientID: patientId!});
+    } = useGetPatientsByPatientIdDataQuery({ PatientID: patientId! });
 
     const [search, setSearch] = useState('');
 
 
     // console.log(usermodel, SV)
-    if (isLoading || isLoadingUM || isLoadingSV) return <Loader/>
+    if (isLoading || isLoadingUM || isLoadingSV) return <Loader />
     if (!data || isError || !usermodel || isErrorUM) return <span>Error loading exercises</span>
 
-    const filteredProtocols = data.filter(protocol => {
+    const filteredProtocols = data.filter(protocol =>
+    {
         const interestTags = Object.entries(protocol.InterestTags)
             .filter(([_, value]) => value)
             .map(([key, _]) => key);
@@ -56,7 +59,8 @@ export const ExerciseList = (props: {
         .filter(([_, value]) => value)
         .map(([key, _]) => key);
 
-    const interestsFilteredProtocols = filteredProtocols.filter(protocol => {
+    const interestsFilteredProtocols = filteredProtocols.filter(protocol =>
+    {
         const interestTags = Object.entries(protocol.InterestTags)
             .filter(([_, value]) => value)
             .map(([key, _]) => key);
@@ -65,11 +69,14 @@ export const ExerciseList = (props: {
 
     let protocols: Exercise[];
 
-    if (!SV || isErrorSV) {
+    if (!SV || isErrorSV)
+    {
         protocols = props.recommended ? interestsFilteredProtocols : filteredProtocols;
-    } else {
+    } else
+    {
         const conditionData = calculateCondition(SV, usermodel, 'longTerm');
-        if (conditionData) {
+        if (conditionData)
+        {
             const {
                 shoulderROMAA, shoulderROMFE, shoulderROMIE, shoulderEndurance, shoulderSpasticityAA,
                 shoulderSpasticityFE, shoulderSpasticityIE, shoulderStrengthAA, shoulderStrengthFE, shoulderStrengthIE,
@@ -114,10 +121,13 @@ export const ExerciseList = (props: {
             // 创建一个新数组用于存放排序后的协议
             let sortedProtocols: Exercise[] = [];
             // 遍历sortedFocus数组
-            sortedFocus.forEach(focus => {
+            sortedFocus.forEach(focus =>
+            {
                 // 对于sortedFocus中的每个元素，检查每个协议的TherapyFocus是否包含该元素
-                interestsFilteredProtocols.forEach(protocol => {
-                    if (protocol.TherapyFocus[focus[0] as keyof TherapyFocus]) {
+                interestsFilteredProtocols.forEach(protocol =>
+                {
+                    if (protocol.TherapyFocus[focus[0] as keyof TherapyFocus])
+                    {
                         // 如果包含，将该协议添加到sortedProtocols数组中
                         sortedProtocols.push(protocol);
                     }
@@ -129,7 +139,8 @@ export const ExerciseList = (props: {
             );
 
             protocols = props.recommended ? sortedProtocols : filteredProtocols;
-        } else {
+        } else
+        {
             protocols = props.recommended ? interestsFilteredProtocols : filteredProtocols;
         }
     }
@@ -143,23 +154,27 @@ export const ExerciseList = (props: {
                 <span className={`btn-text ${!props.recommended ? 'font-semibold' : ''}`}>All Exercises</span>
             </button>
         </div>
-        <SearchBox searchValue={search} setSearchValue={setSearch}/>
+        <SearchBox searchValue={search} setSearchValue={setSearch} />
         <div className={'flex items-center gap-2'}>
-            <AiOutlineDrag className={'flex-none fill-primary h-8 w-8'}/>
+            <AiOutlineDrag className={'flex-none fill-primary h-8 w-8'} />
             <h3 className={`flex-1`}>Drag to add new exercise</h3>
         </div>
         <div className={'flex @6xl:flex-col gap-2 w-full overflow-y-scroll @6xl:h-screen'}>
             {protocols.length === 0 ? <div>No exercises</div> : protocols.map(
                 (protocol, idx) =>
                     <div
+                        className='self-center'
                         draggable={true}
-                        onDragStart={(event) => {
+                        onDragStart={(event) =>
+                        {
                             props.setDragged(protocol);
                             let image: ReactNode;
-                            if (protocol.Thumbnail) {
+                            if (protocol.Thumbnail)
+                            {
                                 image = <img className={'rounded w-32 aspect-[4/3]'} src={protocol.Thumbnail}
-                                             alt={"Protocol Thumbnail"}/>;
-                            } else {
+                                    alt={"Protocol Thumbnail"} />;
+                            } else
+                            {
                                 image = <div
                                     className={'rounded w-32 aspect-[4/3] bg-primary flex items-center justify-center text-white'}>No
                                     thumbnail</div>;
@@ -173,16 +188,18 @@ export const ExerciseList = (props: {
                             dragRoot = createRoot(dragImage);
                             dragRoot.render(image);
                         }}
-                        onDragEnd={() => {
+                        onDragEnd={() =>
+                        {
                             props.setDragged(null);
-                            if (dragImage && dragRoot) { //清除拖动时的图片,卸载dragRoot
+                            if (dragImage && dragRoot)
+                            { //清除拖动时的图片,卸载dragRoot
                                 dragRoot.unmount();
                                 document.body.removeChild(dragImage);
                                 dragImage = null;
                             }
                         }}
                         key={protocol.ProtocolID ?? idx}>
-                        <ExerciseCard exercise={protocol}/>
+                        <ExcersiceSamllCard exercise={protocol} />
                     </div>
             )}
         </div>

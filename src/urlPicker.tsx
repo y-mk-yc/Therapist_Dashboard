@@ -1,22 +1,21 @@
-const URL_KEY = 'url'
+// const URL_KEY = 'url'
 
-export const getUrl = () => {
-  return  localStorage.getItem(URL_KEY) || 'http://localhost:3000'
-}
+export const serviceUrls = {
+  auth: 'http://localhost:3000',  // URL for the auth service
 
-export const UrlPicker = () => {
-  const url = getUrl()
-  console.log("url:", url);
-
-  const setUrl = (newUrl: string) => {
-    localStorage.setItem(URL_KEY, newUrl)
-    location.reload()   //刷新页面,注意这个方法会重新加载页面，而不是只刷新页面的一部分，所以会导致redux store中的数据变为初始值
-  }
-
-  return <div className={'absolute right-0 shadow bg-orange-200 p-1 z-50'}>
-    <select className={'px-2 py-0'} value={url} onChange={(e) => setUrl(e.target.value)}>
-      <option value={'http://localhost:3000'}>localhost</option>
-      <option value={'http://16.16.172.121:3000/'}>Ubuntu Server</option>
-    </select>
-  </div>
-}
+  chat: 'http://localhost:3002',  // URL for the chat(socket) service
+  note: 'http://localhost:3003',  // URL for the note service
+  data: 'http://localhost:3004',  // URL for the data service
+  // Add more services as needed
+};
+Object.keys(serviceUrls).forEach((key) =>
+{
+  const service = key as keyof typeof serviceUrls; // Type assertion to ensure 'key' is a valid service name
+  const defaultUrl = serviceUrls[service];
+  localStorage.setItem(`${service}-url`, defaultUrl);  // Store the default URL for each service
+});
+export const getUrl = (service: keyof typeof serviceUrls) =>
+{
+  // Retrieve the URL for the specific service from localStorage (or fallback to default)
+  return localStorage.getItem(`${service}-url`) || serviceUrls[service];
+};

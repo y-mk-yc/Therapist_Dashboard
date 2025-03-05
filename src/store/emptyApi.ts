@@ -1,15 +1,64 @@
-import {createApi, fetchBaseQuery} from '@reduxjs/toolkit/query/react'
-import {getUrl} from "../urlPicker";  //获得当前的url
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { getUrl } from "../urlPicker";  //获得当前的url
 
+
+// console.log(getUrl('auth'))
 export const emptySplitApi = createApi({
     baseQuery: fetchBaseQuery(
         {
             credentials: 'include',
-            prepareHeaders: (headers) => {
+            prepareHeaders: (headers) =>
+            {
                 //这里设置一些统一的headers
                 return headers;
             },
-            baseUrl: getUrl()
+            baseUrl: getUrl('auth')
+        }),
+    endpoints: () => ({}),
+})
+
+export const noteSplitApi = createApi({
+    reducerPath: 'noteApi',
+    baseQuery: fetchBaseQuery(
+        {
+            credentials: 'include',
+            prepareHeaders: (headers) =>
+            {
+                //这里设置一些统一的headers
+                return headers;
+            },
+            baseUrl: getUrl('note')
+        }),
+    endpoints: () => ({}),
+})
+
+export const chatSplitApi = createApi({
+    reducerPath: 'chatApi',
+    baseQuery: fetchBaseQuery(
+        {
+            credentials: 'include',
+            prepareHeaders: (headers) =>
+            {
+                //这里设置一些统一的headers
+                return headers;
+            },
+            baseUrl: getUrl('chat')
+        }),
+    endpoints: () => ({}),
+})
+
+
+export const dataSplitApi = createApi({
+    reducerPath: ' dataApi',
+    baseQuery: fetchBaseQuery(
+        {
+            credentials: 'include',
+            prepareHeaders: (headers) =>
+            {
+                //这里设置一些统一的headers
+                return headers;
+            },
+            baseUrl: getUrl('data')
         }),
     endpoints: () => ({}),
 })

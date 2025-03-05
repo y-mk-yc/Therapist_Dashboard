@@ -1,17 +1,20 @@
-import {useEffect, useState, useReducer, useCallback} from 'react'
-import {AiOutlineEdit} from 'react-icons/ai'
-import {useParams} from "react-router-dom";
-import {
+import { useEffect, useState, useReducer, useCallback } from 'react'
+import { AiOutlineEdit } from 'react-icons/ai'
+import { useParams } from "react-router-dom";
+import
+{
     StateVariable,
     useGetPatientsByPatientIdDataQuery,
     useGetUsermodelByPatientIdQuery,
     useUpdateTherapyGoalsByPatientIdMutation
 } from "../../../store/rehybApi";
-import {Loader} from "../../../common/Loader";
-import {SideDialog} from '../../../common/dialogs/SideDialog';
-import {divWrapper} from "../../../common/styleUtils";
-import {LabeledMinMaxInput, LabeledNumberInput} from "../../../common/Inputs";
-import {getLatestObject} from "../../../common/utils";
+import { Loader } from "../../../common/Loader";
+import { SideDialog } from '../../../common/dialogs/SideDialog';
+import { divWrapper } from "../../../common/styleUtils";
+import { LabeledMinMaxInput, LabeledNumberInput } from "../../../common/Inputs";
+import { getLatestObject } from "../../../common/utils";
+import Collapsible from 'react-collapsible';
+import { MilestoneClass, useGetHandUsermodelByPatientIdQuery, usePutPatientsHandMutation, UserState } from '../../../store/dataApi';
 
 
 type ROMState = {
@@ -68,13 +71,13 @@ type TherapyGoalsAction =   //action 可以是任何类型，但是必须有一�
 const initialState: TherapyGoalsState = {
     Description: '',
     ROM: {
-        AngleShoulderAA: {Min: 0, Max: 0},
-        AngleShoulderFE: {Min: 0, Max: 0},
-        AngleShoulderIE: {Min: 0, Max: 0},
-        AngleShoulderHFE: {Min: 0, Max: 0},
-        AngleElbowFE: {Min: 0, Max: 0},
-        AngleWristPS: {Min: 0, Max: 0},
-        AngleIndexFE: {Min: 0, Max: 0},
+        AngleShoulderAA: { Min: 0, Max: 0 },
+        AngleShoulderFE: { Min: 0, Max: 0 },
+        AngleShoulderIE: { Min: 0, Max: 0 },
+        AngleShoulderHFE: { Min: 0, Max: 0 },
+        AngleElbowFE: { Min: 0, Max: 0 },
+        AngleWristPS: { Min: 0, Max: 0 },
+        AngleIndexFE: { Min: 0, Max: 0 },
     },
     Strength: {
         RequiredSupportShoulderAA: 0,
@@ -101,29 +104,33 @@ const initialState: TherapyGoalsState = {
     },
 };
 
-function reducer(state: TherapyGoalsState, action: TherapyGoalsAction): TherapyGoalsState {
+function reducer(state: TherapyGoalsState, action: TherapyGoalsAction): TherapyGoalsState
+{
     //每当dispatch一个action时，reducer函数会被调用，传入当前的state和action，然后返回一个新的state，根据action的type来决定如何更改state
-    switch (action.type) {
+    switch (action.type)
+    {
         case 'SET_ROM':
-            return {...state, ROM: action.payload};
+            return { ...state, ROM: action.payload };
         case 'SET_SPASTICITY':
-            return {...state, Spasticity: action.payload};
+            return { ...state, Spasticity: action.payload };
         case 'SET_ENDURANCE':
-            return {...state, Endurance: action.payload};
+            return { ...state, Endurance: action.payload };
         case 'SET_STRENGTH':
-            return {...state, Strength: action.payload};
+            return { ...state, Strength: action.payload };
         case "SET_DESCRIPTION":
-            return {...state, Description: action.payload};
+            return { ...state, Description: action.payload };
         default:
             return state;
     }
 }
-function getCurrentState_Spasticity(sv: StateVariable | undefined, bodyPart: 'shoulderAA' | 'shoulderFE' | 'shoulderHFE' | 'shoulderIE' | 'elbow' | 'hand') {
+function getCurrentState_Spasticity(sv: StateVariable | undefined, bodyPart: 'shoulderAA' | 'shoulderFE' | 'shoulderHFE' | 'shoulderIE' | 'elbow' | 'hand')
+{
     //设置这个函数的原因是因为数据库中usermodel的goal和stateVariable的数据结构不一样，(需求不清晰累死程序员:))
-    const getAverageTorque = (assessments: { Speed: string, Spasticity: { Angle: number, Torque: number }[] }[]): number => {
+    const getAverageTorque = (assessments: { Speed: string, Spasticity: { Angle: number, Torque: number }[] }[]): number =>
+    {
         const torques = assessments.flatMap(a => a.Spasticity.map(s => s.Torque));
         const totalTorque = torques.reduce((a, b) => a + b, 0);
-        console.log({torques, totalTorque});
+        console.log({ torques, totalTorque });
         return torques.length > 0 ? totalTorque / torques.length : 0;
     }
 
@@ -139,14 +146,16 @@ function getCurrentState_Spasticity(sv: StateVariable | undefined, bodyPart: 'sh
     };
 
     const bodyPartAssessments = bodyParts[bodyPart];
-    if (bodyPartAssessments && bodyPartAssessments.length > 0) {
+    if (bodyPartAssessments && bodyPartAssessments.length > 0)
+    {
         return +getAverageTorque(getLatestObject(bodyPartAssessments).Assessment).toFixed(2);
     }
     return null;
 }
 
 
-function placeCursorAtEnd(contentEditableElement: HTMLElement) {
+function placeCursorAtEnd(contentEditableElement: HTMLElement)
+{
     const range = document.createRange();
     range.selectNodeContents(contentEditableElement);
     range.collapse(false);
@@ -157,17 +166,27 @@ function placeCursorAtEnd(contentEditableElement: HTMLElement) {
 
 const Grid = divWrapper('grid grid-cols-[repeat(2,1fr)] grid-rows-[repeat(5,auto)] gap-x-6 gap-y-2');
 
-export const TherapyGoals = () => {
-    const {patientId} = useParams();
+export const TherapyGoals = () =>
+{
+    const { patientId } = useParams();
     const {
         data: stateVariable,
         isLoading: isLoadingSV,
-    } = useGetPatientsByPatientIdDataQuery({PatientID: patientId!})
+    } = useGetPatientsByPatientIdDataQuery({ PatientID: patientId! })
     const {
         data: usermodel,
         isLoading: isLoadingUM,
         isError: isErrorUM
-    } = useGetUsermodelByPatientIdQuery({PatientID: patientId!})
+    } = useGetUsermodelByPatientIdQuery({ PatientID: patientId! })
+
+    const {
+        data: handUsermodel,
+        isLoading: isLoadingHUM,
+        isError: isErrorHUM
+    } = useGetHandUsermodelByPatientIdQuery({ PatientID: patientId! })
+
+    const [handState, setHandState] = useState<UserState>()
+    const [updateHandState] = usePutPatientsHandMutation()
     const [updateTherapyGoals] = useUpdateTherapyGoalsByPatientIdMutation();
 
     const [state, dispatch] = useReducer(reducer, initialState);
@@ -180,42 +199,56 @@ export const TherapyGoals = () => {
 
     let isUpdateDisabled = false;
 
-    const setROM = useCallback((rom: ROMState) => {
-        dispatch({type: 'SET_ROM', payload: rom});
+    const setROM = useCallback((rom: ROMState) =>
+    {
+        dispatch({ type: 'SET_ROM', payload: rom });
     }, []); //只在组件挂载时执行一次，不需要依赖任何变量，所以传入空数组, useCallback的作用时保存一个函数，避免每次渲染都创建一个新的函数
 
-    const setSpasticity = useCallback((spasticity: SpasticityState) => {
-        dispatch({type: 'SET_SPASTICITY', payload: spasticity});
+    const setSpasticity = useCallback((spasticity: SpasticityState) =>
+    {
+        dispatch({ type: 'SET_SPASTICITY', payload: spasticity });
     }, []);
 
-    const setEndurance = useCallback((endurance: EnduranceState) => {
-        dispatch({type: 'SET_ENDURANCE', payload: endurance});
+    const setEndurance = useCallback((endurance: EnduranceState) =>
+    {
+        dispatch({ type: 'SET_ENDURANCE', payload: endurance });
     }, []);
 
-    const setStrength = useCallback((strength: StrengthState) => {
-        dispatch({type: 'SET_STRENGTH', payload: strength});
+    const setStrength = useCallback((strength: StrengthState) =>
+    {
+        dispatch({ type: 'SET_STRENGTH', payload: strength });
     }, []);
 
-    const setDescription = useCallback((description: string) => {
-        dispatch({type: 'SET_DESCRIPTION', payload: description});
+    const setDescription = useCallback((description: string) =>
+    {
+        dispatch({ type: 'SET_DESCRIPTION', payload: description });
     }, []);
 
-    const onUpdate = async () => {
+    const onUpdate = async () =>
+    {
         const result = await updateTherapyGoals({
             PatientID: patientId!,
             Term: term,
             TherapyGoals: state,
         })
-        if ('error' in result) {
+
+        await updateHandState({
+            PatientID: patientId!,
+            handState: handState!
+        })
+        if ('error' in result)
+        {
             console.error('update failed', result.error);
         }
     }
 
-    useEffect(() => {
-        if (usermodel) {
+    useEffect(() =>
+    {
+        if (usermodel)
+        {
             //这里写这么复杂主要是防止数据库中有的数据值为null，这样会导致state中的值为null，然后在渲染时会报错
             const ROM1 = usermodel.TherapyGoals?.[term]?.Quantification?.Physical?.ROM || {};
-            const ROM2 = {...initialState.ROM, ...ROM1};
+            const ROM2 = { ...initialState.ROM, ...ROM1 };
             const ROM3 = Object.fromEntries(
                 Object.entries(ROM2).map(([key, value]) => [
                     key,
@@ -228,21 +261,21 @@ export const TherapyGoals = () => {
             setROM(ROM3);
 
             const Spasticity1 = usermodel.TherapyGoals?.[term]?.Quantification?.Physical?.Spasticity || {};
-            const Spasticity2 = {...initialState.Spasticity, ...Spasticity1};
+            const Spasticity2 = { ...initialState.Spasticity, ...Spasticity1 };
             const Spasticity3 = Object.fromEntries(
                 Object.entries(Spasticity2).map(([key, value]) => [key, value ?? 0])
             ) as SpasticityState;
             setSpasticity(Spasticity3);
 
             const Endurance1 = usermodel.TherapyGoals?.[term]?.Quantification?.Physical?.Endurance || {};
-            const Endurance2 = {...initialState.Endurance, ...Endurance1};
+            const Endurance2 = { ...initialState.Endurance, ...Endurance1 };
             const Endurance3 = Object.fromEntries(
                 Object.entries(Endurance2).map(([key, value]) => [key, value ?? 0])
             ) as EnduranceState;
             setEndurance(Endurance3);
 
             const Strength1 = usermodel.TherapyGoals?.[term]?.Quantification?.Physical?.Strength || {};
-            const Strength2 = {...initialState.Strength, ...Strength1};
+            const Strength2 = { ...initialState.Strength, ...Strength1 };
             const Strength3 = Object.fromEntries(
                 Object.entries(Strength2).map(([key, value]) => [key, value ?? 0])
             ) as StrengthState;
@@ -252,29 +285,35 @@ export const TherapyGoals = () => {
         }
     }, [usermodel, setROM, setSpasticity, setEndurance, setStrength, setDescription, stateRollback, term]);
 
-
+    useEffect(() =>
+    {
+        console.log('set hand state')
+        setHandState(handUsermodel!)
+    }, [handUsermodel])
     //这里要设置UM的goal为空的情况
-    if (isLoadingSV || isLoadingUM) return <Loader/>
+    if (isLoadingSV || isLoadingUM || isLoadingHUM) return <Loader />
     if (isErrorUM || !usermodel)
         return <div className={`flex-col`}>
             <h3 className="whitespace-nowrap">Therapy goals</h3>
             <p>Error in loading the data of User Model</p>
         </div>
 
-
-    for (let key in state.ROM) {
-        if (state.ROM.hasOwnProperty(key)) {
+    for (let key in state.ROM)
+    {
+        if (state.ROM.hasOwnProperty(key))
+        {
             const angle = state.ROM[key as keyof ROMState];
             // 检查Min是否大于等于Max
-            if (angle.Min > angle.Max) {
+            if (angle.Min > angle.Max)
+            {
                 isUpdateDisabled = true;
                 break;
             }
         }
     }
 
-    console.log("state",state);
-
+    // console.log("state", state);
+    console.log({ handState })
     return <>
         <h3 className="whitespace-nowrap">Therapy goals</h3>
         <div className="flex flex-col gap-2 justify-center mt-6">
@@ -282,7 +321,8 @@ export const TherapyGoals = () => {
                 key="long-term"
                 title="Long term goal"
                 goal={usermodel.TherapyGoals?.LongTerm?.Description || 'No long term goal defined'}
-                onEdit={() => {
+                onEdit={() =>
+                {
                     setTerm('LongTerm');
                     setIsEditingGoal(true);
                 }}
@@ -291,7 +331,8 @@ export const TherapyGoals = () => {
                 key="short-term"
                 title="Short term goal"
                 goal={usermodel.TherapyGoals?.ShortTerm?.Description || 'No short term goal defined'}
-                onEdit={() => {
+                onEdit={() =>
+                {
                     setTerm('ShortTerm');
                     setIsEditingGoal(true);
                 }}
@@ -301,13 +342,15 @@ export const TherapyGoals = () => {
             <SideDialog
                 title={term === 'LongTerm' ? "Long Term Goal" : "Short Term Goal"}
                 subtitle={term === 'LongTerm' ? 'Edit the long term goal for the patient' : 'Edit the short term goal for the patient'}
-                onClose={() => {
+                onClose={() =>
+                {
                     setIsEditingGoal(false);
                     setStateRollback(!stateRollback);
                 }}
                 showCancelButton={true}
                 actionLabel="Update"
-                primaryAction={() => {
+                primaryAction={() =>
+                {
                     onUpdate();
                     setIsEditingGoal(false);
                 }}
@@ -317,17 +360,211 @@ export const TherapyGoals = () => {
                     <div className={`card-outline mb-4 `}>
                         <h5 className="mb-2">Description</h5>
                         <div className={`w-[500px] rounded px-6 py-4 border border-gray-300 font-semibold`}
-                             contentEditable={true}
-                             suppressContentEditableWarning={true}
-                             onInput={(e) => {
-                                 setDescription(e.currentTarget.textContent || '');
-                                 placeCursorAtEnd(e.currentTarget);
-                             }}>
+                            contentEditable={true}
+                            suppressContentEditableWarning={true}
+                            onInput={(e) =>
+                            {
+                                setDescription(e.currentTarget.textContent || '');
+                                placeCursorAtEnd(e.currentTarget);
+                            }}>
                             {state.Description}
                         </div>
                     </div>
-                    <div className="card-outline">
-                        <h5 className="mb-2">Physical</h5>
+
+
+                    <Collapsible trigger="Hands" triggerStyle={{ fontSize: 20, fontWeight: 'bold' }}>
+                        <Grid>
+                            {
+                                handState?.Milestone && Object.keys(handState.Milestone).map((side: string) =>
+                                {
+                                    console.log({ handState })
+                                    if (!handState.AffectedHand.includes(side)) return null
+                                    const sideData = handState.Milestone[side as keyof typeof handState.Milestone];
+                                    return Object.keys(sideData).map((joint: string) =>
+                                    {
+                                        const jointData = sideData[joint as keyof typeof sideData] as any;
+
+                                        if (jointData?.Yrotation && jointData?.Xrotation && jointData?.Zrotation)
+                                        {
+                                            // console.log({ joint, jointData })
+                                            return (
+                                                <div key={`${side}-${joint}`} className='border border-slate-400 p-5'>
+                                                    <LabeledMinMaxInput
+                                                        label={`${joint} Y Rotation`}
+                                                        minValue={jointData.Yrotation.min}
+                                                        maxValue={jointData.Yrotation.max}
+                                                        currentState={jointData.Yrotation}
+                                                        onMinValueSet={(value: number) =>
+                                                        {
+                                                            const updateMinValue: UserState = {
+                                                                ...handState,
+                                                                Milestone: {
+                                                                    ...handState!.Milestone,
+                                                                    [side as keyof MilestoneClass]: {
+                                                                        ...handState!.Milestone[side as keyof MilestoneClass],
+                                                                        [joint]: {
+                                                                            ...jointData,
+                                                                            Yrotation: {
+                                                                                max: jointData.Yrotation.max,
+                                                                                min: value
+                                                                            }
+
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                            }
+                                                            setHandState(updateMinValue)
+
+                                                        }}
+
+                                                        onMaxValueSet={(value: number) =>
+                                                        {
+                                                            const updateMinValue: UserState = {
+                                                                ...handState,
+                                                                Milestone: {
+                                                                    ...handState!.Milestone,
+                                                                    [side as keyof MilestoneClass]: {
+                                                                        ...handState!.Milestone[side as keyof MilestoneClass],
+                                                                        [joint]: {
+                                                                            ...jointData,
+                                                                            Yrotation: {
+                                                                                min: jointData.Yrotation.min,
+                                                                                max: value
+                                                                            }
+
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                            }
+                                                            setHandState(updateMinValue)
+
+                                                        }
+                                                        }
+                                                    />
+                                                    <LabeledMinMaxInput
+                                                        label={`${joint} X Rotation`}
+                                                        minValue={jointData.Xrotation.min}
+                                                        maxValue={jointData.Xrotation.max}
+                                                        currentState={jointData.Xrotation}
+                                                        onMinValueSet={(value: number) =>
+                                                        {
+                                                            const updateMinValue: UserState = {
+                                                                ...handState,
+                                                                Milestone: {
+                                                                    ...handState!.Milestone,
+                                                                    [side as keyof MilestoneClass]: {
+                                                                        ...handState!.Milestone[side as keyof MilestoneClass],
+                                                                        [joint]: {
+                                                                            ...jointData,
+                                                                            Xrotation: {
+                                                                                max: jointData.Xrotation.max,
+                                                                                min: value
+                                                                            }
+
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                            }
+                                                            setHandState(updateMinValue)
+
+                                                        }}
+
+                                                        onMaxValueSet={(value: number) =>
+                                                        {
+                                                            const updateMinValue: UserState = {
+                                                                ...handState,
+                                                                Milestone: {
+                                                                    ...handState!.Milestone,
+                                                                    [side as keyof MilestoneClass]: {
+                                                                        ...handState!.Milestone[side as keyof MilestoneClass],
+                                                                        [joint]: {
+                                                                            ...jointData,
+                                                                            Xrotation: {
+                                                                                min: jointData.Xrotation.min,
+                                                                                max: value
+                                                                            }
+
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                            }
+                                                            setHandState(updateMinValue)
+
+                                                        }}
+                                                    />
+                                                    <LabeledMinMaxInput
+                                                        label={`${joint} Z Rotation`}
+                                                        minValue={jointData.Zrotation.min}
+                                                        maxValue={jointData.Zrotation.max}
+                                                        currentState={jointData.Zrotation}
+                                                        onMinValueSet={(value: number) =>
+                                                        {
+                                                            const updateMinValue: UserState = {
+                                                                ...handState,
+                                                                Milestone: {
+                                                                    ...handState!.Milestone,
+                                                                    [side as keyof MilestoneClass]: {
+                                                                        ...handState!.Milestone[side as keyof MilestoneClass],
+                                                                        [joint]: {
+                                                                            ...jointData,
+                                                                            Zrotation: {
+                                                                                max: jointData.Zrotation.max,
+                                                                                min: value
+                                                                            }
+
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                            }
+                                                            setHandState(updateMinValue)
+
+                                                        }}
+
+                                                        onMaxValueSet={(value: number) =>
+                                                        {
+                                                            const updateMinValue: UserState = {
+                                                                ...handState,
+                                                                Milestone: {
+                                                                    ...handState!.Milestone,
+                                                                    [side as keyof MilestoneClass]: {
+                                                                        ...handState!.Milestone[side as keyof MilestoneClass],
+                                                                        [joint]: {
+                                                                            ...jointData,
+                                                                            Zrotation: {
+                                                                                min: jointData.Zrotation.min,
+                                                                                max: value
+                                                                            }
+
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                            }
+                                                            setHandState(updateMinValue)
+
+                                                        }}
+                                                    />
+                                                </div>
+                                            );
+                                        }
+
+                                        return null;
+                                    });
+
+                                })
+                            }
+                        </Grid>
+
+                    </Collapsible>
+                    <br></br>
+
+                    <Collapsible trigger="Physical" triggerStyle={{ fontSize: 20, fontWeight: 'bold' }}> <div className="card-outline">
+                        {/* <h5 className="mb-2">Physical</h5> */}
                         <div className="card-outline">
                             <h4>Range of motion</h4>
                             <Grid>
@@ -336,7 +573,7 @@ export const TherapyGoals = () => {
                                     //currentState的对象根据stateVariable.Physical.ROM.AngleShoulderAA数组的Date属性来判断,
                                     //找出最新的Date属性的对象，然后取出Min和Max属性
                                     currentState={stateVariable?.Physical?.ROM?.AngleShoulderAA &&
-                                    stateVariable?.Physical.ROM.AngleShoulderAA.length > 0 ? {
+                                        stateVariable?.Physical.ROM.AngleShoulderAA.length > 0 ? {
                                         min: getLatestObject(stateVariable.Physical.ROM.AngleShoulderAA).Min,
                                         max: getLatestObject(stateVariable.Physical.ROM.AngleShoulderAA).Max
                                     } : null}
@@ -344,17 +581,17 @@ export const TherapyGoals = () => {
                                     maxValue={state.ROM.AngleShoulderAA.Max}
                                     onMinValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleShoulderAA: {...state.ROM.AngleShoulderAA, Min: val}
+                                        AngleShoulderAA: { ...state.ROM.AngleShoulderAA, Min: val }
                                     })}
                                     onMaxValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleShoulderAA: {...state.ROM.AngleShoulderAA, Max: val}
+                                        AngleShoulderAA: { ...state.ROM.AngleShoulderAA, Max: val }
                                     })}
                                 />
                                 <LabeledMinMaxInput
                                     label={'AngleShoulderFE'}
                                     currentState={stateVariable?.Physical?.ROM?.AngleShoulderFE &&
-                                    stateVariable?.Physical.ROM.AngleShoulderFE.length > 0 ? {
+                                        stateVariable?.Physical.ROM.AngleShoulderFE.length > 0 ? {
                                         min: getLatestObject(stateVariable.Physical.ROM.AngleShoulderFE).Min,
                                         max: getLatestObject(stateVariable.Physical.ROM.AngleShoulderFE).Max
                                     } : null}
@@ -362,17 +599,17 @@ export const TherapyGoals = () => {
                                     maxValue={state.ROM.AngleShoulderFE.Max}
                                     onMinValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleShoulderFE: {...state.ROM.AngleShoulderFE, Min: val}
+                                        AngleShoulderFE: { ...state.ROM.AngleShoulderFE, Min: val }
                                     })}
                                     onMaxValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleShoulderFE: {...state.ROM.AngleShoulderFE, Max: val}
+                                        AngleShoulderFE: { ...state.ROM.AngleShoulderFE, Max: val }
                                     })}
                                 />
                                 <LabeledMinMaxInput
                                     label={'AngleShoulderHFE'}
                                     currentState={stateVariable?.Physical?.ROM?.AngleShoulderHFE &&
-                                    stateVariable?.Physical.ROM.AngleShoulderHFE.length > 0 ? {
+                                        stateVariable?.Physical.ROM.AngleShoulderHFE.length > 0 ? {
                                         min: getLatestObject(stateVariable.Physical.ROM.AngleShoulderHFE).Min,
                                         max: getLatestObject(stateVariable.Physical.ROM.AngleShoulderHFE).Max
                                     } : null}
@@ -380,17 +617,17 @@ export const TherapyGoals = () => {
                                     maxValue={state.ROM.AngleShoulderHFE.Max}
                                     onMinValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleShoulderHFE: {...state.ROM.AngleShoulderHFE, Min: val}
+                                        AngleShoulderHFE: { ...state.ROM.AngleShoulderHFE, Min: val }
                                     })}
                                     onMaxValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleShoulderHFE: {...state.ROM.AngleShoulderHFE, Max: val}
+                                        AngleShoulderHFE: { ...state.ROM.AngleShoulderHFE, Max: val }
                                     })}
                                 />
                                 <LabeledMinMaxInput
                                     label={'AngleShoulderIE'}
                                     currentState={stateVariable?.Physical?.ROM?.AngleShoulderIE &&
-                                    stateVariable?.Physical.ROM.AngleShoulderIE.length > 0 ? {
+                                        stateVariable?.Physical.ROM.AngleShoulderIE.length > 0 ? {
                                         min: getLatestObject(stateVariable.Physical.ROM.AngleShoulderIE).Min,
                                         max: getLatestObject(stateVariable.Physical.ROM.AngleShoulderIE).Max
                                     } : null}
@@ -398,17 +635,17 @@ export const TherapyGoals = () => {
                                     maxValue={state.ROM.AngleShoulderIE.Max}
                                     onMinValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleShoulderIE: {...state.ROM.AngleShoulderIE, Min: val}
+                                        AngleShoulderIE: { ...state.ROM.AngleShoulderIE, Min: val }
                                     })}
                                     onMaxValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleShoulderIE: {...state.ROM.AngleShoulderIE, Max: val}
+                                        AngleShoulderIE: { ...state.ROM.AngleShoulderIE, Max: val }
                                     })}
                                 />
                                 <LabeledMinMaxInput
                                     label={'AngleElbowFE'}
                                     currentState={stateVariable?.Physical?.ROM?.AngleElbowFE &&
-                                    stateVariable?.Physical.ROM.AngleElbowFE.length > 0 ? {
+                                        stateVariable?.Physical.ROM.AngleElbowFE.length > 0 ? {
                                         min: getLatestObject(stateVariable.Physical.ROM.AngleElbowFE).Min,
                                         max: getLatestObject(stateVariable.Physical.ROM.AngleElbowFE).Max
                                     } : null}
@@ -416,17 +653,17 @@ export const TherapyGoals = () => {
                                     maxValue={state.ROM.AngleElbowFE.Max}
                                     onMinValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleElbowFE: {...state.ROM.AngleElbowFE, Min: val}
+                                        AngleElbowFE: { ...state.ROM.AngleElbowFE, Min: val }
                                     })}
                                     onMaxValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleElbowFE: {...state.ROM.AngleElbowFE, Max: val}
+                                        AngleElbowFE: { ...state.ROM.AngleElbowFE, Max: val }
                                     })}
                                 />
                                 <LabeledMinMaxInput
                                     label={'AngleWristPS'}
                                     currentState={stateVariable?.Physical?.ROM?.AngleWristPS &&
-                                    stateVariable?.Physical.ROM.AngleWristPS.length > 0 ? {
+                                        stateVariable?.Physical.ROM.AngleWristPS.length > 0 ? {
                                         min: getLatestObject(stateVariable.Physical.ROM.AngleWristPS).Min,
                                         max: getLatestObject(stateVariable.Physical.ROM.AngleWristPS).Max
                                     } : null}
@@ -434,17 +671,17 @@ export const TherapyGoals = () => {
                                     maxValue={state.ROM.AngleWristPS.Max}
                                     onMinValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleWristPS: {...state.ROM.AngleWristPS, Min: val}
+                                        AngleWristPS: { ...state.ROM.AngleWristPS, Min: val }
                                     })}
                                     onMaxValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleWristPS: {...state.ROM.AngleWristPS, Max: val}
+                                        AngleWristPS: { ...state.ROM.AngleWristPS, Max: val }
                                     })}
                                 />
                                 <LabeledMinMaxInput
                                     label={'AngleIndexFE'}
                                     currentState={stateVariable?.Physical?.ROM?.AngleIndexFE &&
-                                    stateVariable?.Physical.ROM.AngleIndexFE.length > 0 ? {
+                                        stateVariable?.Physical.ROM.AngleIndexFE.length > 0 ? {
                                         min: getLatestObject(stateVariable.Physical.ROM.AngleIndexFE).Min,
                                         max: getLatestObject(stateVariable.Physical.ROM.AngleIndexFE).Max
                                     } : null}
@@ -452,11 +689,11 @@ export const TherapyGoals = () => {
                                     maxValue={state.ROM.AngleIndexFE.Max}
                                     onMinValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleIndexFE: {...state.ROM.AngleIndexFE, Min: val}
+                                        AngleIndexFE: { ...state.ROM.AngleIndexFE, Min: val }
                                     })}
                                     onMaxValueSet={(val) => setROM({
                                         ...state.ROM,
-                                        AngleIndexFE: {...state.ROM.AngleIndexFE, Max: val}
+                                        AngleIndexFE: { ...state.ROM.AngleIndexFE, Max: val }
                                     })}
                                 />
                             </Grid>
@@ -467,7 +704,7 @@ export const TherapyGoals = () => {
                                 <LabeledNumberInput
                                     label={'RequiredSupportShoulderAA'}
                                     currentState={stateVariable?.Physical?.Strength?.RequiredSupportShoulderAA &&
-                                    stateVariable?.Physical.Strength.RequiredSupportShoulderAA.length > 0 ?
+                                        stateVariable?.Physical.Strength.RequiredSupportShoulderAA.length > 0 ?
                                         getLatestObject(stateVariable.Physical.Strength.RequiredSupportShoulderAA).Torque : null}
                                     value={state.Strength.RequiredSupportShoulderAA}
                                     onValueSet={(val) => setStrength({
@@ -478,7 +715,7 @@ export const TherapyGoals = () => {
                                 <LabeledNumberInput
                                     label={'RequiredSupportShoulderFE'}
                                     currentState={stateVariable?.Physical?.Strength?.RequiredSupportShoulderFE &&
-                                    stateVariable?.Physical.Strength.RequiredSupportShoulderFE.length > 0 ?
+                                        stateVariable?.Physical.Strength.RequiredSupportShoulderFE.length > 0 ?
                                         getLatestObject(stateVariable.Physical.Strength.RequiredSupportShoulderFE).Torque : null}
                                     value={state.Strength.RequiredSupportShoulderFE}
                                     onValueSet={(val) => setStrength({
@@ -489,7 +726,7 @@ export const TherapyGoals = () => {
                                 <LabeledNumberInput
                                     label={'RequiredSupportShoulderHFE'}
                                     currentState={stateVariable?.Physical?.Strength?.RequiredSupportShoulderHFE &&
-                                    stateVariable?.Physical.Strength.RequiredSupportShoulderHFE.length > 0 ?
+                                        stateVariable?.Physical.Strength.RequiredSupportShoulderHFE.length > 0 ?
                                         getLatestObject(stateVariable.Physical.Strength.RequiredSupportShoulderHFE).Torque : null}
                                     value={state.Strength.RequiredSupportShoulderHFE}
                                     onValueSet={(val) => setStrength({
@@ -500,7 +737,7 @@ export const TherapyGoals = () => {
                                 <LabeledNumberInput
                                     label={'RequiredSupportShoulderIE'}
                                     currentState={stateVariable?.Physical?.Strength?.RequiredSupportShoulderIE &&
-                                    stateVariable?.Physical.Strength.RequiredSupportShoulderIE.length > 0 ?
+                                        stateVariable?.Physical.Strength.RequiredSupportShoulderIE.length > 0 ?
                                         getLatestObject(stateVariable.Physical.Strength.RequiredSupportShoulderIE).Torque : null}
                                     value={state.Strength.RequiredSupportShoulderIE}
                                     onValueSet={(val) => setStrength({
@@ -511,7 +748,7 @@ export const TherapyGoals = () => {
                                 <LabeledNumberInput
                                     label={'RequiredSupportElbowFE'}
                                     currentState={stateVariable?.Physical?.Strength?.RequiredSupportElbowFE &&
-                                    stateVariable?.Physical.Strength.RequiredSupportElbowFE.length > 0 ?
+                                        stateVariable?.Physical.Strength.RequiredSupportElbowFE.length > 0 ?
                                         getLatestObject(stateVariable.Physical.Strength.RequiredSupportElbowFE).Torque : null}
                                     value={state.Strength.RequiredSupportElbowFE}
                                     onValueSet={(val) => setStrength({
@@ -522,10 +759,10 @@ export const TherapyGoals = () => {
                                 <LabeledNumberInput
                                     label={'RequiredSupportGrip'}
                                     currentState={stateVariable?.Physical?.Strength?.RequiredSupportGrip &&
-                                    stateVariable?.Physical.Strength.RequiredSupportGrip.length > 0 ?
+                                        stateVariable?.Physical.Strength.RequiredSupportGrip.length > 0 ?
                                         getLatestObject(stateVariable.Physical.Strength.RequiredSupportGrip).FESSupport : null}
                                     value={state.Strength.RequiredSupportGrip}
-                                    onValueSet={(val) => setStrength({...state.Strength, RequiredSupportGrip: val})}
+                                    onValueSet={(val) => setStrength({ ...state.Strength, RequiredSupportGrip: val })}
                                 />
                             </Grid>
                         </div>
@@ -536,38 +773,38 @@ export const TherapyGoals = () => {
                                     label={'ShoulderAA'}
                                     currentState={getCurrentState_Spasticity(stateVariable, 'shoulderAA')}
                                     value={state.Spasticity.ShoulderAA}
-                                    onValueSet={(val) => setSpasticity({...state.Spasticity, ShoulderAA: val})}
+                                    onValueSet={(val) => setSpasticity({ ...state.Spasticity, ShoulderAA: val })}
                                 />
                                 <LabeledNumberInput
                                     label={'ShoulderFE'}
                                     currentState={getCurrentState_Spasticity(stateVariable, 'shoulderFE')}
                                     value={state.Spasticity.ShoulderFE}
-                                    onValueSet={(val) => setSpasticity({...state.Spasticity, ShoulderFE: val})}
+                                    onValueSet={(val) => setSpasticity({ ...state.Spasticity, ShoulderFE: val })}
                                 />
                                 <LabeledNumberInput
                                     label={'ShoulderHFE'}
                                     currentState={getCurrentState_Spasticity(stateVariable, 'shoulderHFE')}
                                     value={state.Spasticity.ShoulderHFE}
-                                    onValueSet={(val) => setSpasticity({...state.Spasticity, ShoulderHFE: val})}
+                                    onValueSet={(val) => setSpasticity({ ...state.Spasticity, ShoulderHFE: val })}
                                 />
                                 <LabeledNumberInput
                                     label={'ShoulderIE'}
                                     currentState={getCurrentState_Spasticity(stateVariable, 'shoulderIE')}
                                     value={state.Spasticity.ShoulderIE}
-                                    onValueSet={(val) => setSpasticity({...state.Spasticity, ShoulderIE: val})}
+                                    onValueSet={(val) => setSpasticity({ ...state.Spasticity, ShoulderIE: val })}
                                 />
                                 <LabeledNumberInput
                                     label={'Elbow'}
                                     currentState={getCurrentState_Spasticity(stateVariable, 'elbow')}
                                     value={state.Spasticity.Elbow}
-                                    onValueSet={(val) => setSpasticity({...state.Spasticity, Elbow: val})}
+                                    onValueSet={(val) => setSpasticity({ ...state.Spasticity, Elbow: val })}
 
                                 />
                                 <LabeledNumberInput
                                     label={'Hand'}
                                     currentState={getCurrentState_Spasticity(stateVariable, 'hand')}
                                     value={state.Spasticity.Hand}
-                                    onValueSet={(val) => setSpasticity({...state.Spasticity, Hand: val})}
+                                    onValueSet={(val) => setSpasticity({ ...state.Spasticity, Hand: val })}
                                 />
                             </Grid>
                         </div>
@@ -577,30 +814,31 @@ export const TherapyGoals = () => {
                                 <LabeledNumberInput
                                     label={'Shoulder'}
                                     currentState={stateVariable?.Physical?.Endurance?.Shoulder &&
-                                    stateVariable?.Physical.Endurance.Shoulder.length > 0 ?
+                                        stateVariable?.Physical.Endurance.Shoulder.length > 0 ?
                                         getLatestObject(stateVariable.Physical.Endurance.Shoulder).TimeToFatigue : null}
                                     value={state.Endurance.Shoulder}
-                                    onValueSet={(val) => setEndurance({...state.Endurance, Shoulder: val})}
+                                    onValueSet={(val) => setEndurance({ ...state.Endurance, Shoulder: val })}
                                 />
                                 <LabeledNumberInput
                                     label={'Elbow'}
                                     currentState={stateVariable?.Physical?.Endurance?.Elbow &&
-                                    stateVariable?.Physical.Endurance.Elbow.length > 0 ?
+                                        stateVariable?.Physical.Endurance.Elbow.length > 0 ?
                                         getLatestObject(stateVariable.Physical.Endurance.Elbow).TimeToFatigue : null}
                                     value={state.Endurance.Elbow}
-                                    onValueSet={(val) => setEndurance({...state.Endurance, Elbow: val})}
+                                    onValueSet={(val) => setEndurance({ ...state.Endurance, Elbow: val })}
                                 />
                                 <LabeledNumberInput
                                     label={'Hand'}
                                     currentState={stateVariable?.Physical?.Endurance?.Hand &&
-                                    stateVariable?.Physical.Endurance.Hand.length > 0 ?
+                                        stateVariable?.Physical.Endurance.Hand.length > 0 ?
                                         getLatestObject(stateVariable.Physical.Endurance.Hand).TimeToFatigue : null}
                                     value={state.Endurance.Hand}
-                                    onValueSet={(val) => setEndurance({...state.Endurance, Hand: val})}
+                                    onValueSet={(val) => setEndurance({ ...state.Endurance, Hand: val })}
                                 />
                             </Grid>
                         </div>
-                    </div>
+                    </div></Collapsible>
+
                     <div className="card-outline mt-4">
                         <h5 className="mb-2">Cognitive</h5>
                     </div>
@@ -610,13 +848,14 @@ export const TherapyGoals = () => {
     </>
 };
 
-const Goals = (props: { title: string, goal: string, onEdit: () => void }) => {
+const Goals = (props: { title: string, goal: string, onEdit: () => void }) =>
+{
     return <div className='flex flex-col'>
         <div className={`flex justify-between`}>
             <h5 className='whitespace-nowrap'>{props.title}
             </h5>
             <AiOutlineEdit onClick={props.onEdit}
-                           className='btn-icon text-2xl w-5 h-5 text-gray-500 cursor-pointer bg-primary hover:bg-secondary2'
+                className='btn-icon text-2xl w-5 h-5 text-gray-500 cursor-pointer bg-primary hover:bg-secondary2'
             />
         </div>
         <span className='max-w-full'>{props.goal}</span>

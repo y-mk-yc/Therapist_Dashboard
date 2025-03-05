@@ -13,7 +13,7 @@ export const DetailAndLabeling = (props: { sessionId: string }) => {
         PatientID: patientId!,
         SessionID: props.sessionId
     });
-    console.log("sessioionData from back end", sessionData);
+    // console.log("sessioionData from back end", sessionData);
 
 
 
@@ -25,18 +25,22 @@ export const DetailAndLabeling = (props: { sessionId: string }) => {
     if(isLoading)  return <div>Loading...</div>;
     if(error||!sessionData) return <div>Error: no data</div>;
 
+    // 这里手动删除第一个数据点因为第一个数据点和第二个数据点之间的时间差异常的大，Martin说可能是Exoskeleton设备和脚本的问题
+    const {Movements,...rest} = sessionData as NewSessionData;
+    const newMovements = Movements.slice(1);
+    const newSessionData = {...rest,Movements:newMovements};
 
     return (
         <>
             {showLabelingPage ? (
                 <ExerciseLabeling
-                    sessionInfo={sessionData}
+                    sessionInfo={newSessionData}
                     // setSessionInfo={setSessionInfo}
                     setShowLabelingPage={setShowLabelingPage}
                 />
             ) : (
                 <ExerciseDetail_new
-                    sessionInfo={sessionData}
+                    sessionInfo={newSessionData}
                     setShowLabelingPage={setShowLabelingPage}
                 />
             )}

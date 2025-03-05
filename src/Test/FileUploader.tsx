@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import axios, {AxiosProgressEvent, AxiosResponse} from 'axios';
+import axios, { AxiosProgressEvent, AxiosResponse } from 'axios';
 import SparkMD5 from 'spark-md5';
-import {getUrl} from '../urlPicker';
-import {v4 as uuidv4} from 'uuid';
+import { getUrl } from '../urlPicker';
+import { v4 as uuidv4 } from 'uuid';
 
-const baseUrl = getUrl();
+const baseUrl = getUrl('auth');
 
 export const FileUploader = (props: {
     accept?: string | undefined,
-    trigger:boolean,
-    setTrigger:React.Dispatch<React.SetStateAction<boolean>>
-}) => {
+    trigger: boolean,
+    setTrigger: React.Dispatch<React.SetStateAction<boolean>>
+}) =>
+{
     const [file, setFile] = useState<File | null>(null);
     const [progress, setProgress] = useState(0);
     const [message, setMessage] = useState('');
@@ -18,18 +19,21 @@ export const FileUploader = (props: {
 
     let bytesUploaded = 0;
     const fileID = `FileID-${uuidv4()}`;
-    let uploadFileresponse: AxiosResponse<any, any>,MD5Verificationresponse;
+    let uploadFileresponse: AxiosResponse<any, any>, MD5Verificationresponse;
 
 
-    const handleFileChange = (e:React.ChangeEvent<HTMLInputElement>) => {
-        if(e.target.files && e.target.files.length>0) {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    {
+        if (e.target.files && e.target.files.length > 0)
+        {
             setFile(e.target.files[0]);
-        // Only one file, so we take the first element
-        //e.target.files is a FileList object, which is a list of File objects
+            // Only one file, so we take the first element
+            //e.target.files is a FileList object, which is a list of File objects
         }
     };
 
-    const handleUpload = async () => {
+    const handleUpload = async () =>
+    {
         if (!file) return;
         setUploadDisabled(true);
         setMessage('Uploading...');
@@ -39,7 +43,8 @@ export const FileUploader = (props: {
         //获得文件的MB数
         const md5 = new SparkMD5.ArrayBuffer();
 
-        for (let i = 0; i < totalChunks; i++) {
+        for (let i = 0; i < totalChunks; i++)
+        {
             const start = i * chunkSize; //第0块的起始位置是0，第1块的起始位置是1MB
             const end = start + chunkSize >= file.size ? file.size : start + chunkSize;
             //如果最后一块的结束位置超过文件大小，就取文件大小，否则取结束位置
@@ -52,23 +57,24 @@ export const FileUploader = (props: {
             formData.append('chunkIndex', i.toString());
             formData.append('totalChunks', totalChunks.toString());
             formData.append('fileName', file.name);
-            formData.append('fileID',fileID);
+            formData.append('fileID', fileID);
 
             uploadFileresponse = await axios.post('/', formData, {
-                onUploadProgress: (progressEvent: AxiosProgressEvent) => {
+                onUploadProgress: (progressEvent: AxiosProgressEvent) =>
+                {
                     bytesUploaded = start + progressEvent.loaded;
                     const percentCompleted = Math.round(
-                        ( bytesUploaded * 100 ) / file.size
+                        (bytesUploaded * 100) / file.size
                     );
                     setProgress(percentCompleted);
                 },
-                baseURL: baseUrl+`/upload`
+                baseURL: baseUrl + `/upload`
             });
         }
         const fileMD5 = md5.end(); //获得文件的MD5值
         console.log(fileMD5);
-        MD5Verificationresponse = await axios.post('/complete', { fileID:fileID, fileName: file.name, md5: fileMD5 },{
-            baseURL: baseUrl+`/upload`
+        MD5Verificationresponse = await axios.post('/complete', { fileID: fileID, fileName: file.name, md5: fileMD5 }, {
+            baseURL: baseUrl + `/upload`
             // params:{
             //     test: 'test'
             // }
@@ -76,7 +82,8 @@ export const FileUploader = (props: {
         });
 
         //上述代码也可以写成axios({method:'post',url:'/complete',data:{fileID:fileID, fileName: file.name, md5: fileMD5},baseURL:baseUrl+`/upload`})
-        if(uploadFileresponse.data ==='Upload file successful' && MD5Verificationresponse.data === 'MD5 match'){
+        if (uploadFileresponse.data === 'Upload file successful' && MD5Verificationresponse.data === 'MD5 match')
+        {
             setMessage('Upload successful');
         }
         // setFile(null);//完成上传后清空代表这个文件的metadata
@@ -88,13 +95,13 @@ export const FileUploader = (props: {
     return (
         <div className={`flex flex-col gap-4`}>
             <div className={`flex justify-between gap-4`}>
-            <input type="file" onChange={handleFileChange} multiple={false} accept={props.accept} disabled={uploadDisabled}/>
-            {/*multiple 默认是undefined，即false*/}
-            <button onClick={handleUpload} className={`btn-primary`} disabled={uploadDisabled}>Upload</button>
+                <input type="file" onChange={handleFileChange} multiple={false} accept={props.accept} disabled={uploadDisabled} />
+                {/*multiple 默认是undefined，即false*/}
+                <button onClick={handleUpload} className={`btn-primary`} disabled={uploadDisabled}>Upload</button>
             </div>
             <div className={`flex justify-between gap-4 items-center`}>
                 <div> Progress:</div>
-            <progress value={progress} max={100} className={`w-full animate-pulse`} />
+                <progress value={progress} max={100} className={`w-full animate-pulse`} />
             </div>
             <div>{message}</div>
         </div>

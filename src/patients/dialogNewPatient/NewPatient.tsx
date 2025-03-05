@@ -1,4 +1,5 @@
-import {
+import
+{
     LabelBox, LabeledAvatarFileInput, LabeledCheckboxGroup,
     LabeledConfirmPasswordInput,
     LabeledInput,
@@ -7,23 +8,27 @@ import {
     LabeledTextArea,
     LabeledToBase64FileInput
 } from "../../common/Inputs";
-import {divWrapper} from "../../common/styleUtils";
-import React, {useState} from "react";
-import {Patient, usePostPatientsMutation, UserInfo} from "../../store/rehybApi";
-import {parseYYYYMMDD} from "../../common/dateUtils";
-import {Loader} from "../../common/Loader";
+import { divWrapper } from "../../common/styleUtils";
+import React, { useState } from "react";
+import { Patient, usePostPatientsMutation, UserInfo } from "../../store/rehybApi";
+import { parseYYYYMMDD } from "../../common/dateUtils";
+import { Loader } from "../../common/Loader";
 import SparkMD5 from 'spark-md5';
-import {getUrl} from '../../urlPicker';
-import {v4 as uuidv4} from 'uuid';
-import axios, {AxiosProgressEvent, AxiosResponse} from "axios";
+import { getUrl } from '../../urlPicker';
+import { v4 as uuidv4 } from 'uuid';
+import axios, { AxiosProgressEvent, AxiosResponse } from "axios";
+import Collapsible from "react-collapsible";
+import { HandsCondition, usePostPatientsHandMutation } from "../../store/dataApi";
 
-const baseUrl = getUrl();
+const baseUrl = getUrl('auth');
 
 
 const Grid = divWrapper('grid grid-cols-[repeat(2,1fr)] grid-rows-[repeat(5,auto)] gap-x-6 gap-y-2')
 
-export const NewPatient = (props: { patientToEdit?: Patient, cancel: () => void }) => {
-    const [createNewPatient, {isLoading}] = usePostPatientsMutation()
+export const NewPatient = (props: { patientToEdit?: Patient, cancel: () => void }) =>
+{
+    const [createNewPatient, { isLoading }] = usePostPatientsMutation()
+    const [createUserHandState, { isLoading: patientHand }] = usePostPatientsHandMutation()
 
     const [patientData, setPatientData] = useState<Required<UserInfo>>( //UserInfo的所有属性都是必须的
         {
@@ -46,14 +51,20 @@ export const NewPatient = (props: { patientToEdit?: Patient, cancel: () => void 
             interests: []
         }
     )
+    const [handsCondition, setHandsCondition] = useState<HandsCondition>(
+        {
+            affected: [],
+            affectedTime: new Date()
+        }
+    )
     const [confirmPassword, setConfirmPassword] = useState('')
     const [isPasswordValid, setIsPasswordValid] = useState(false)
     const [isEmailValid, setIsEmailValid] = useState(false)
 
     //avatar
     const [file, setFile] = useState<File | null>(null);
-    console.log(file)
-    const uploadAvatarFile = async () => {
+    const uploadAvatarFile = async () =>
+    {
         if (!file) return;
 
         const md5 = new SparkMD5.ArrayBuffer();
@@ -71,7 +82,8 @@ export const NewPatient = (props: { patientToEdit?: Patient, cancel: () => void 
         formData.append('file', blob, file.name);
         formData.append('fileName', file.name);
         formData.append('fileMD5', fileMD5);
-        try {
+        try
+        {
             const uploadFileresponse = await axios.post('/' + patientData.email, formData, {
                 baseURL: baseUrl + `/TherapistProfiles/uploadAvatar`,
                 headers: {
@@ -79,7 +91,8 @@ export const NewPatient = (props: { patientToEdit?: Patient, cancel: () => void 
                 }
             });
             console.log(uploadFileresponse);
-        } catch (error) {
+        } catch (error)
+        {
             console.error('Error uploading file:', error);
         }
     };
@@ -96,16 +109,20 @@ export const NewPatient = (props: { patientToEdit?: Patient, cancel: () => void 
 
     const createEnabled =   //检查patientData对象中除image和notes属性外的所有字符串属性，如果所有这些属性都非空，就返回true，否则返回false
         (Object.keys(patientData) as (keyof typeof patientData)[])
-            .reduce((prev, current) => {
-                if (current === 'image' || current === 'note' || typeof patientData[current] !== 'string') {
+            .reduce((prev, current) =>
+            {
+                if (current === 'image' || current === 'note' || typeof patientData[current] !== 'string')
+                {
                     return prev;
                 }
                 return (typeof patientData[current] === 'string') && (patientData[current] as string).length > 0 && prev;
             }, true) && patientData.password === confirmPassword && !!patientData.phone && isEmailValid && isPasswordValid;
 
 
-    const onCreate = async () => {
-        try {
+    const onCreate = async () =>
+    {
+        try
+        {
             const result = await createNewPatient({
                 userInfo: {
                     ...patientData,
@@ -113,15 +130,27 @@ export const NewPatient = (props: { patientToEdit?: Patient, cancel: () => void 
                     strokeDate: parseYYYYMMDD(patientData.strokeDate).toISOString(),
                 }
             })
+            console.log({ result })
+            if ('data' in result)
+            {
+                const handResult = await createUserHandState({
+                    handCondition: handsCondition,
+                    PatientID: result.data.PatientID
+                });
+            } else
+            {
+                console.error("Failed to create patient:", result.error);
+            }
             uploadAvatarFile();
             props.cancel()
-        }catch(e){
+        } catch (e)
+        {
             console.error("Failed to create patient", e)
         }
     }
 
     if (isLoading)
-        return <Loader/>
+        return <Loader />
 
     return <>
         <div className='card-outline'>
@@ -142,10 +171,10 @@ export const NewPatient = (props: { patientToEdit?: Patient, cancel: () => void 
                     onValueSet={createPatientDataSetter('gender')}
                     value={patientData.gender}
                     values={[
-                        {text: 'Male', value: 'Male'},
-                        {text: 'Female', value: 'Female'},
-                        {text: 'Other', value: 'Other'},
-                    ]}/>
+                        { text: 'Male', value: 'Male' },
+                        { text: 'Female', value: 'Female' },
+                        { text: 'Other', value: 'Other' },
+                    ]} />
                 <LabeledPhoneInput
                     label={'Phone'}
                     onValueSet={createPatientDataSetter('phone')}
@@ -198,95 +227,128 @@ export const NewPatient = (props: { patientToEdit?: Patient, cancel: () => void 
         </div>
         <div className='card-outline mt-4'>
             <h5 className='mb-2'>Patient's condition</h5>
-            <Grid>
-                <LabeledSelect
-                    label={'Stroke type'}
-                    placeholder={'Enter here'}
-                    onValueSet={createPatientDataSetter('strokeType')}
-                    value={patientData.strokeType}
-                    values={[{value: 'ischemic', text: 'Ischemic stroke'}]}
-                />
-                <LabeledInput
-                    type={'date'}
-                    label={'Date of stroke'}
-                    placeholder={'Enter here'}
-                    onValueSet={createPatientDataSetter('strokeDate')}
-                    value={patientData.strokeDate}
-                />
-                <LabeledSelect
-                    label={'Paretic side'}
-                    placeholder={'Enter here'}
-                    onValueSet={createPatientDataSetter('pareticSide')}
-                    value={patientData.pareticSide}
-                    values={[{text: 'Right', value: 'Right'}, {text: 'Left', value: 'Left'},]}/>
-                <LabeledSelect
-                    label={'Dominant side'}
-                    placeholder={'Enter here'}
-                    onValueSet={createPatientDataSetter('dominantArm')}
-                    value={patientData.dominantArm}
-                    values={[{text: 'Right', value: 'Right'}, {text: 'Left', value: 'Left'},]}/>
+            <Collapsible trigger="Hands" triggerStyle={{ fontSize: 20, fontWeight: 'bold' }}>
+                <Grid>
+                    <LabeledCheckboxGroup
+                        label={'Affected Hands'}
+                        values={[{ value: 'right', text: 'right' }, { value: 'left', text: 'left' },]}
+                        onValueSet={(selectedValues: string[]) =>
+                            setHandsCondition({
+                                ...handsCondition,
+                                affected: selectedValues, // Use spread operator to create a new array
+                            })
+                        }
+                        selectedValues={handsCondition.affected}
+                        className={'flex'}
+                    />
+                    <LabeledInput
+                        type={'date'}
+                        label={'Affected Time'} placeholder={'Enter here'}
+                        onValueSet={(value) =>
+                            setHandsCondition({
+                                ...handsCondition,
+                                affectedTime: new Date(value)
+                            })
+                        }
+                        value={handsCondition.affectedTime ? handsCondition.affectedTime.toISOString().split('T')[0] : ''}
+                    />
+                </Grid>
+            </Collapsible>
 
-                <LabeledCheckboxGroup
-                    label={'Interests'}
-                    values={[{value: 'Sports', text: 'Sports'}, {value: 'Cooking', text: 'Cooking'},
-                        {value: 'Household', text: 'Household'}, {value: 'Gardening', text: 'Gardening'},
-                        {value: 'ADL', text: 'ADL'}, {value: 'Nature', text: 'Nature'},
-                        {value: 'Competition', text: 'Competition'}, {value: 'Other', text: 'Other'}]}
-                    onValueSet={(selectedValues) => setPatientData({...patientData, interests: selectedValues})}
-                    selectedValues={patientData.interests}
-                    className={'flex'}
-                />
-                <div className={`flex flex-col gap-y-2`}>
-                <LabelBox label={'Corrected vision'}>
-                    <div className={'flex gap-2 items-center'}>
-                        <input type='number' className={`w-[100px]`}
-                               value={patientData.visionCorrection.split('/')[0]}
-                               onChange={(e) => {
-                                   const prev = patientData.visionCorrection.split('/')[1]
-                                   setPatientData({
-                                       ...patientData,
-                                       visionCorrection: `${e.target.value}/${prev}`
-                                   })
-                               }}
+            <Collapsible trigger="Others" triggerStyle={{ fontSize: 20, fontWeight: 'bold' }}>
+                <Grid>
+                    <LabeledSelect
+                        label={'Stroke type'}
+                        placeholder={'Enter here'}
+                        onValueSet={createPatientDataSetter('strokeType')}
+                        value={patientData.strokeType}
+                        values={[{ value: 'ischemic', text: 'Ischemic stroke' }]}
+                    />
+                    <LabeledInput
+                        type={'date'}
+                        label={'Date of stroke'}
+                        placeholder={'Enter here'}
+                        onValueSet={createPatientDataSetter('strokeDate')}
+                        value={patientData.strokeDate}
+                    />
+                    <LabeledSelect
+                        label={'Paretic side'}
+                        placeholder={'Enter here'}
+                        onValueSet={createPatientDataSetter('pareticSide')}
+                        value={patientData.pareticSide}
+                        values={[{ text: 'Right', value: 'Right' }, { text: 'Left', value: 'Left' },]} />
+                    <LabeledSelect
+                        label={'Dominant side'}
+                        placeholder={'Enter here'}
+                        onValueSet={createPatientDataSetter('dominantArm')}
+                        value={patientData.dominantArm}
+                        values={[{ text: 'Right', value: 'Right' }, { text: 'Left', value: 'Left' },]} />
+
+                    <LabeledCheckboxGroup
+                        label={'Interests'}
+                        values={[{ value: 'Sports', text: 'Sports' }, { value: 'Cooking', text: 'Cooking' },
+                        { value: 'Household', text: 'Household' }, { value: 'Gardening', text: 'Gardening' },
+                        { value: 'ADL', text: 'ADL' }, { value: 'Nature', text: 'Nature' },
+                        { value: 'Competition', text: 'Competition' }, { value: 'Other', text: 'Other' }]}
+                        onValueSet={(selectedValues) => setPatientData({ ...patientData, interests: selectedValues })}
+                        selectedValues={patientData.interests}
+                        className={'flex'}
+                    />
+                    <div className={`flex flex-col gap-y-2`}>
+                        <LabelBox label={'Corrected vision'}>
+                            <div className={'flex gap-2 items-center'}>
+                                <input type='number' className={`w-[100px]`}
+                                    value={patientData.visionCorrection.split('/')[0]}
+                                    onChange={(e) =>
+                                    {
+                                        const prev = patientData.visionCorrection.split('/')[1]
+                                        setPatientData({
+                                            ...patientData,
+                                            visionCorrection: `${e.target.value}/${prev}`
+                                        })
+                                    }}
+                                />
+                                {'/'}
+                                <input type='number' className={`w-[100px]`}
+                                    value={patientData.visionCorrection.split('/')[1]}
+                                    onChange={(e) =>
+                                    {
+                                        const prev = patientData.visionCorrection.split('/')[0]
+                                        setPatientData({
+                                            ...patientData,
+                                            visionCorrection: `${prev}/${e.target.value}`
+                                        })
+                                    }}
+                                />
+                            </div>
+                        </LabelBox>
+                        <LabeledSelect
+                            label={'Default ReHyb Setup'} placeholder={'Enter here'}
+                            onValueSet={createPatientDataSetter('defaultReHybSetup')}
+                            value={patientData.defaultReHybSetup}
+                            values={[
+                                { text: 'DTU-Setup', value: 'DTU-Setup' },
+                                { text: 'HP-1', value: 'HP-1' },
+                                { text: 'HP-2', value: 'HP-2' },
+                                { text: 'SL', value: 'SL' },
+                            ]} />
+                        <LabeledAvatarFileInput
+                            label={'Avatar'}
+                            onValueSet={setFile}
+                            value={file}
                         />
-                        {'/'}
-                        <input type='number' className={`w-[100px]`}
-                               value={patientData.visionCorrection.split('/')[1]}
-                               onChange={(e) => {
-                                   const prev = patientData.visionCorrection.split('/')[0]
-                                   setPatientData({
-                                       ...patientData,
-                                       visionCorrection: `${prev}/${e.target.value}`
-                                   })
-                               }}
-                        />
+
                     </div>
-                </LabelBox>
-                <LabeledSelect
-                    label={'Default ReHyb Setup'} placeholder={'Enter here'}
-                    onValueSet={createPatientDataSetter('defaultReHybSetup')}
-                    value={patientData.defaultReHybSetup}
-                    values={[
-                        {text: 'DTU-Setup', value: 'DTU-Setup'},
-                        {text: 'HP-1', value: 'HP-1'},
-                        {text: 'HP-2', value: 'HP-2'},
-                        {text: 'SL', value: 'SL'},
-                    ]}/>
-                    <LabeledAvatarFileInput
-                        label={'Avatar'}
-                        onValueSet={setFile}
-                        value={file}
-                        />
+                    <LabeledTextArea
+                        className={'col-span-2'}
+                        label={'Special condition notes (Optional)'}
+                        placeholder={'Enter here'}
+                        onValueSet={createPatientDataSetter('note')}
+                        value={patientData.note}
+                    />
+                </Grid>
+            </Collapsible>
 
-                </div>
-                <LabeledTextArea
-                    className={'col-span-2'}
-                    label={'Special condition notes (Optional)'}
-                    placeholder={'Enter here'}
-                    onValueSet={createPatientDataSetter('note')}
-                    value={patientData.note}
-                />
-            </Grid>
         </div>
         <div className={'w-full mt-4 gap-4 flex justify-end'}>
             <button className='btn-secondary' onClick={props.cancel}>Cancel</button>

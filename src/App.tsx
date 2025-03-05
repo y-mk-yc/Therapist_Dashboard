@@ -1,26 +1,26 @@
-import {createBrowserRouter, Outlet, RouterProvider} from 'react-router-dom'
-import {Navbar} from './navbar/Navbar'
-import {Dashboard} from './dashboard/Dashboard'
-import {Patients} from './patients/Patients'
-import {Exercises} from './exercises/Exercises'
-import {PatientDetail} from './patients/detail/PatientDetail'
-import {Overview} from './patients/detail/overview/Overview'
-import {Data} from './patients/detail/data/Data'
-import {store, useAppSelector} from './store/store'
-import {Provider} from 'react-redux'
-import {PatientExercises} from './patients/detail/exercises/Exercises'
-import {Login} from './login/Login'
-import {useLoginRedirect} from './common/hooks/authHooks'
-import {Signup} from './login/SignUp'
+import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom'
+import { Navbar } from './navbar/Navbar'
+import { Dashboard } from './dashboard/Dashboard'
+import { Patients } from './patients/Patients'
+import { Exercises } from './exercises/Exercises'
+import { PatientDetail } from './patients/detail/PatientDetail'
+import { Overview } from './patients/detail/overview/Overview'
+import { Data } from './patients/detail/data/Data'
+import { store, useAppSelector } from './store/store'
+import { Provider } from 'react-redux'
+import { PatientExercises } from './patients/detail/exercises/Exercises'
+import { Login } from './login/Login'
+import { useLoginRedirect } from './common/hooks/authHooks'
+import { Signup } from './login/SignUp'
 //import {Admin} from './admin/admin'
-import {isLoggedIn} from "./store/slices/userSlice";
-import {Loader} from "./common/Loader";
-import {usePrevious} from "./common/hooks/utilityHooks";
-import {useEffect, useState} from "react";
-import {UrlPicker} from "./urlPicker";
+import { isLoggedIn } from "./store/slices/userSlice";
+import { Loader } from "./common/Loader";
+import { usePrevious } from "./common/hooks/utilityHooks";
+import { useEffect, useState } from "react";
+// import { UrlPicker } from "./urlPicker";
 
-import {useLocation, useNavigate} from 'react-router-dom'
-import {Test} from "./Test/Test";
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Test } from "./Test/Test";
 
 //////////测试
 // function MyComponent() {
@@ -46,7 +46,8 @@ import {Test} from "./Test/Test";
 // }
 //////////测试
 
-const Root = () => {
+const Root = () =>
+{
     useLoginRedirect()
     const user = useAppSelector(state => state.userReducer.user)
 
@@ -54,23 +55,25 @@ const Root = () => {
 
     // Trickery to hide dialog smoothly
     const [hidden, setHidden] = useState(true)
-    useEffect(() => {
+    useEffect(() =>
+    {
         if (message) setHidden(false)
-        else setTimeout(() => {
+        else setTimeout(() =>
+        {
             setHidden(true)
         }, 700)
     }, [message])
 
 
     const prevMessage = usePrevious<typeof message>(message)
-    if (!isLoggedIn(user)) return <Loader/>
+    if (!isLoggedIn(user)) return <Loader />
 
     return (
         <>
             <div className="flex w-full items-stretch min-h-screen">
-                <Navbar/>
+                <Navbar />
                 <div className="from-[#F2F4FB] to-white bg-gradient-to-b flex-1 w-full">
-                    <Outlet/>
+                    <Outlet />
                 </div>
             </div>
             {<div className={`fixed bottom-0 w-full flex justify-center ${hidden ? 'h-0' : 'h-fit'}`}>
@@ -94,48 +97,48 @@ const router = createBrowserRouter([
     },*/
     {
         path: 'login',
-        element: <Login/>
+        element: <Login />
     },
 
     {
         path: 'signup',
-        element: <Signup/>
+        element: <Signup />
     },
 
     {
         path: '/',
-        element: <Root/>,
+        element: <Root />,
         children: [
             {
                 index: true,
-                element: <Dashboard/>
+                element: <Dashboard />
             },
             {
                 path: 'patients',
-                element: <Patients/>,
+                element: <Patients />,
             },
             // I believe I can't put it as children of patients because I'd need an <Outlet/> in Patients
             {
                 path: 'patients/:patientId', //onClick={() => navigate(props.patient.PatientID)} in Patients.tsx
-                element: <PatientDetail/>,
+                element: <PatientDetail />,
                 children: [
                     {
                         index: true,
-                        element: <Overview/>
+                        element: <Overview />
                     },
                     {
                         path: 'data',
-                        element: <Data/>
+                        element: <Data />
                     },
                     {
                         path: 'exercises',
-                        element: <PatientExercises/>
+                        element: <PatientExercises />
                     }
                 ]
             },
             {
                 path: 'exercises',
-                element: <Exercises/>
+                element: <Exercises />
             },
             // {
             //     path:'test',
@@ -147,11 +150,14 @@ const router = createBrowserRouter([
 ]);
 
 //<UrlPicker />是一个右上角的下拉框，可以选择不同的server
-function App() {
-    return <Provider store={store}>
-        <UrlPicker/>
-        <RouterProvider router={router}/>
-    </Provider>
+function App()
+{
+    return <RouterProvider router={router} />
+    // <Provider store={store}>
+    {/* <UrlPicker/> */ }
+    // <RouterProvider router={router} />
+
+    // </Provider>
 }
 
 export default App

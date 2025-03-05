@@ -105,4 +105,38 @@
             transform: translate3d(0, 0, 0);
         }
     }
+    .react-dropdown .custom-menu .email-text {
+        font-size: 0.85rem; /* Smaller font for email */
+        color: gray;
+    }
+    
+    .react-dropdown .custom-menu .name-text {
+        font-size: 1rem;
+        font-weight: bold; /* Highlight the name */
+    }
+    
+    .react-dropdown .custom-control {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    
+    .react-dropdown .custom-menu {
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    /* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
 }

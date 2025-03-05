@@ -1,13 +1,14 @@
-import {ReactNode} from "react";
-import {Tooltip} from "../../../../common/dialogs/Tooltip";
+import { ReactNode } from "react";
+import { ReHybTooltip } from "../../../../common/dialogs/Tooltip";
 import editIcon from './editIcon.svg'
-import {
-    EnduranceManualAssessmentButton,
-    ROMManualAssessmentButton, SpasticityManualAssessmentButton,
-    StrengthManualAssessmentButton
-} from "./ManualAssesmentButton";
-import {PatientIdManualAssessmentBody, Speed, VariableType} from "../../../../store/rehybApi";
-import {BodyPart} from "../Data";
+import
+    {
+        EnduranceManualAssessmentButton,
+        ROMManualAssessmentButton, SpasticityManualAssessmentButton,
+        StrengthManualAssessmentButton
+    } from "./ManualAssesmentButton";
+import { PatientIdManualAssessmentBody, Speed, VariableType } from "../../../../store/rehybApi";
+import { BodyPart } from "../Data";
 
 export const LabeledGraph = (props: {
     label: string,
@@ -28,19 +29,20 @@ export const LabeledGraph = (props: {
         date: string,
         bodyPart: BodyPart
     },
-    editInitialSpasticity?:{
+    editInitialSpasticity?: {
         torque: number,
         date: string,
         bodyPart: BodyPart,
         variable: VariableType,
-        speed:Speed,
+        speed: Speed,
         angle: number
     }
-}) => {
+}) =>
+{
     return <div className={`flex flex-col gap-2 ${props.className}`}>
         <div className={'flex gap-2 items-center whitespace-nowrap'}>
             <h3>{props.label}</h3>
-            {props.tip && <Tooltip tip={props.tip} className={props.classNameTip}/>}
+            {props.tip && <ReHybTooltip tip={props.tip} className={props.classNameTip} />}
             {props.editInitialStrength &&
                 <StrengthManualAssessmentButton
                     strength={props.editInitialStrength.strength}
