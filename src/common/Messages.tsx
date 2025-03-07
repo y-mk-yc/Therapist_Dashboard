@@ -110,7 +110,9 @@ function ChatBox()
                 const updatedChatHistory = [...prevChatHistory, data];
 
                 setFilteredMessages(updatedChatHistory.filter(
-                    (msg) => msg.sender === activeUser?.id || msg.receiver === activeUser?.id
+                    (msg) =>
+                        msg.sender === activeUserRef.current?.id ||
+                        msg.receiver === activeUserRef.current?.id
                 ));
 
                 return updatedChatHistory;
@@ -186,7 +188,7 @@ function ChatBox()
                         {users.map((user) => (
                             <div
                                 key={user.id}
-                                className={`p-4 cursor-pointer ${activeUser?.id === user.id ? "bg-blue-100 text-blue-600 font-bold" : "hover:bg-gray-100"}`}
+                                className={`p-4 cursor-pointer ${activeUser?.id === user.id ? "bg-blue-100 text-blue-600 font-bold " : "hover:bg-gray-100 "}`}
                                 onClick={() =>
                                 {
                                     setActiveUser(user);
@@ -226,7 +228,7 @@ function ChatBox()
                                             className={`mb-2 ${msg.sender === TherapistID ? "text-right" : "text-left"}`}
                                         >
                                             <p
-                                                className={`inline-block px-4 py-2 rounded-lg ${msg.sender === TherapistID ? "bg-gray-100 text-gray-700" : "bg-blue-500 text-white"
+                                                className={`inline-block px-4 py-2 rounded-lg ${msg.sender === TherapistID ? "bg-blue-500 text-white ml-3" : "bg-gray-100 text-gray-700 mr-3"
                                                     }`}
                                             >
                                                 {msg.content}
